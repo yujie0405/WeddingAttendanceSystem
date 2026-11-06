@@ -1,4 +1,4 @@
-// src/components/Navbar.tsx
+// src/components/navbar.tsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { Role } from '../types';
@@ -12,46 +12,50 @@ export const Navbar: React.FC<Props> = ({ currentUser, onLogout }) => {
   const location = useLocation();
 
   return (
-    <header className="bg-white border-b border-amber-100 sticky top-0 z-20 shadow-sm px-4 py-3 flex justify-between items-center">
-      <div className="flex items-center gap-3">
-        <h1 className="font-bold text-amber-900 flex items-center gap-2 text-base sm:text-lg">
-          <i className="fa-solid fa-heart text-amber-600"></i>
-          婚礼宾客签到系统
-        </h1>
-        <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-200 hidden sm:inline-block">
-          {currentUser.name} ({currentUser.role === 'admin' ? '管理员' : '招待员'})
-        </span>
-      </div>
+    <nav className="navbar navbar-expand navbar-light bg-white border-bottom sticky-top shadow-sm px-3">
+      <div className="container-fluid max-w-4xl p-0 flex-wrap flex-sm-nowrap">
+        {/* 系统 Title */}
+        <div className="d-flex items-center gap-2 me-auto">
+          <Link to="/" className="navbar-brand font-bold text-warning d-flex align-items-center gap-2 m-0 fs-5">
+            <i className="fa-solid fa-heart text-danger"></i>
+            <span className="fw-bold text-dark">婚礼宾客签到系统</span>
+          </Link>
+          <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle d-none d-sm-inline-block">
+            {currentUser.name} ({currentUser.role === 'admin' ? '管理员' : '招待员'})
+          </span>
+        </div>
 
-      <div className="flex items-center gap-2">
-        <Link
-          to="/"
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-            location.pathname === '/' ? 'bg-amber-600 text-white' : 'bg-gray-100 hover:bg-gray-200'
-          }`}
-        >
-          <i className="fa-solid fa-magnifying-glass mr-1"></i> 宾客签到
-        </Link>
-
-        {currentUser.role === 'admin' && (
+        {/* 路由导航按键 */}
+        <div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
           <Link
-            to="/admin"
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              location.pathname === '/admin' ? 'bg-amber-600 text-white' : 'bg-gray-100 hover:bg-gray-200'
+            to="/"
+            className={`btn btn-sm ${
+              location.pathname === '/' ? 'btn-warning text-dark fw-bold' : 'btn-light text-secondary'
             }`}
           >
-            <i className="fa-solid fa-sliders mr-1"></i> 后台配置
+            <i className="fa-solid fa-magnifying-glass me-1"></i> 宾客签到
           </Link>
-        )}
 
-        <button
-          onClick={onLogout}
-          className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-colors ml-1"
-          title="退出登录"
-        >
-          <i className="fa-solid fa-right-from-bracket"></i>
-        </button>
+          {currentUser.role === 'admin' && (
+            <Link
+              to="/admin"
+              className={`btn btn-sm ${
+                location.pathname === '/admin' ? 'btn-warning text-dark fw-bold' : 'btn-light text-secondary'
+              }`}
+            >
+              <i className="fa-solid fa-sliders me-1"></i> 后台配置
+            </Link>
+          )}
+
+          <button
+            onClick={onLogout}
+            className="btn btn-sm btn-outline-danger border-0 ms-1"
+            title="退出登录"
+          >
+            <i className="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
       </div>
-    </header>
+    </nav>
   );
 };
