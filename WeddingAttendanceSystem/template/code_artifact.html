@@ -1,21 +1,32 @@
-/*
- * wedding.js — shared logic for the wedding check-in / angpao system.
- *
- * Loaded by every page (mainpage.html and admin/*.html) via:
- *   <script type="text/babel" src="wedding.js"></script>      (root)
- *   <script type="text/babel" src="../wedding.js"></script>   (admin/)
- *
- * Each page declares which screen to render on its mount element:
- *   <div id="root" data-page="mainpage|dashboard|tag|add-guest|table-setting" data-base="" | "../"></div>
- * Nothing runs unless that element exists, so the file is safe on any page.
- *
- * Everything lives inside one IIFE, so no globals are leaked.
- */
-(function () {
-    const { useState, useMemo, useEffect, useCallback } = React;
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>婚礼宾客签到与礼金管理系统</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome 6 Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+  <!-- Babel Compiler for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-[#FDFBF7] text-[#2C2A29] font-sans antialiased selection:bg-amber-100">
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
 
     // ==========================================
-    // MOCK DATA & TYPES (seed data, unchanged from original)
+    // MOCK DATA & TYPES
     // ==========================================
 
     const INITIAL_TAGS = [
@@ -176,285 +187,22 @@
     const formatRM = (val) => `RM ${val.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     // ==========================================
-    // SHARED STATE STORE (localStorage-backed)
-    // The original kept all state in one React tree. Now that each page is a
-    // separate document, state is persisted so pages see the same data.
+    // MAIN APP COMPONENT
     // ==========================================
 
-    const STORAGE_PREFIX = 'wedding.v1.';
-    const DEFAULT_USER = { id: 'u1', username: 'staff01', name: '接待员 - 阿杰', role: 'ADMIN' };
-    const SEED = {
-      tags: INITIAL_TAGS,
-      guests: INITIAL_GUESTS,
-      groups: INITIAL_GROUPS,
-      tables: INITIAL_TABLES,
-      angpaoRecords: INITIAL_ANGPAO,
-      currentUser: DEFAULT_USER,
-    };
-
-    const Store = (() => {
-      const cache = {};
-      const listeners = {};
-
-      const read = (key) => {
-        try {
-          const raw = window.localStorage.getItem(STORAGE_PREFIX + key);
-          return raw === null ? undefined : JSON.parse(raw);
-        } catch (e) {
-          return undefined;
-        }
-      };
-      const write = (key, value) => {
-        try {
-          window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
-        } catch (e) {
-          /* storage unavailable: fall back to in-memory only */
-        }
-      };
-      const notify = (key) => {
-        (listeners[key] || []).slice().forEach(fn => fn(cache[key]));
-      };
-
-      const api = {
-        get(key) {
-          if (!(key in cache)) {
-            const stored = read(key);
-            if (stored === undefined) {
-              cache[key] = SEED[key];
-              write(key, SEED[key]);
-            } else {
-              cache[key] = stored;
-            }
-          }
-          return cache[key];
-        },
-        set(key, value) {
-          cache[key] = value;
-          write(key, value);
-          notify(key);
-        },
-        subscribe(key, fn) {
-          if (!listeners[key]) listeners[key] = [];
-          listeners[key].push(fn);
-          return () => {
-            listeners[key] = listeners[key].filter(f => f !== fn);
-          };
-        },
-        reloadFromStorage(key) {
-          delete cache[key];
-          api.get(key);
-          notify(key);
-        },
-      };
-
-      // Another tab changed data
-      window.addEventListener('storage', (e) => {
-        if (!e.key || e.key.indexOf(STORAGE_PREFIX) !== 0) return;
-        api.reloadFromStorage(e.key.slice(STORAGE_PREFIX.length));
-      });
-      // Back/forward cache restore: re-read everything so pages are never stale
-      window.addEventListener('pageshow', (e) => {
-        if (e.persisted) Object.keys(SEED).forEach(api.reloadFromStorage);
+    function App() {
+      const [currentUser, setCurrentUser] = useState({
+        id: 'u1',
+        username: 'staff01',
+        name: '接待员 - 阿杰',
+        role: 'ADMIN',
       });
 
-      return api;
-    })();
-
-    // Same shape as useState: [value, setValue] (setValue accepts a value or an updater function)
-    function useStored(key) {
-      const [value, setValue] = useState(() => Store.get(key));
-      useEffect(() => {
-        setValue(Store.get(key));
-        return Store.subscribe(key, setValue);
-      }, [key]);
-      const update = useCallback((next) => {
-        const current = Store.get(key);
-        Store.set(key, typeof next === 'function' ? next(current) : next);
-      }, [key]);
-      return [value, update];
-    }
-
-    // ==========================================
-    // NAVIGATION (paths differ between / and /admin)
-    // ==========================================
-
-    function getLinks(base) {
-      const admin = base ? '' : 'admin/';
-      return {
-        main: base + 'mainpage.html',
-        dashboard: admin + 'dashboard.html',
-        tag: admin + 'tag.html',
-        addGuest: admin + 'add-guest.html',
-        tableSetting: admin + 'table-setting.html',
-      };
-    }
-    let LINKS = getLinks('');
-
-    const ADMIN_TABS = [
-      { id: 'dashboard', linkKey: 'dashboard', label: '后台概览', icon: 'fa-solid fa-chart-simple' },
-      { id: 'tag', linkKey: 'tag', label: '全局标签管理', icon: 'fa-solid fa-tag text-amber-700' },
-      { id: 'add-guest', linkKey: 'addGuest', label: '新增/管理宾客', icon: 'fa-solid fa-user' },
-      { id: 'table-setting', linkKey: 'tableSetting', label: '桌位设置', icon: 'fa-solid fa-table-cells' },
-    ];
-
-    // ==========================================
-    // APP SHELL: login gate + toast + sticky header (was inside App)
-    // ==========================================
-
-    function AppShell({ isAdminPage = false, children }) {
-      const [currentUser, setCurrentUser] = useStored('currentUser');
-      const [toastMessage, setToastMessage] = useState(null);
-
-      const showToast = (msg) => {
-        setToastMessage(msg);
-        setTimeout(() => setToastMessage(null), 3000);
-      };
-
-      // Admin pages were only reachable by ADMIN in the original
-      useEffect(() => {
-        if (isAdminPage && currentUser && currentUser.role !== 'ADMIN') {
-          window.location.replace(LINKS.main);
-        }
-      }, [isAdminPage, currentUser]);
-
-      if (!currentUser) {
-        return (
-          <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
-            <div className="bg-white p-6 rounded-2xl border border-[#E8E2D5] shadow-md max-w-sm w-full space-y-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-amber-700 text-white flex items-center justify-center mx-auto text-xl font-bold font-serif">
-                囍
-              </div>
-              <h2 className="text-lg font-bold text-[#2C2A29]">婚礼宾客签到系统登录</h2>
-              <button
-                onClick={() =>
-                  setCurrentUser({
-                    id: 'u1',
-                    username: 'staff01',
-                    name: '接待员 - 阿杰',
-                    role: 'ADMIN',
-                  })
-                }
-                className="w-full py-2.5 bg-amber-700 text-white rounded-xl font-bold hover:bg-amber-800 transition-colors"
-              >
-                以管理员登录体验
-              </button>
-            </div>
-          </div>
-        );
-      }
-
-      if (isAdminPage && currentUser.role !== 'ADMIN') return null;
-
-      return (
-        <div className="min-h-screen bg-[#FDFBF7] text-[#2C2A29] font-sans flex flex-col selection:bg-amber-100">
-          {toastMessage && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#322F2B] text-white text-xs md:text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 border border-amber-500/30">
-              <i className="fa-solid fa-circle-check text-amber-400"></i>
-              <span>{toastMessage}</span>
-            </div>
-          )}
-
-          <header className="sticky top-0 z-30 bg-[#FFFDF9]/95 backdrop-blur-md border-b border-[#E8E2D5] shadow-xs">
-            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-lg font-bold shadow-xs">
-                  囍
-                </div>
-                <div>
-                  <h1 className="text-base font-bold text-[#2C2A29] leading-tight">婚礼宾客签到与礼金管理系统</h1>
-                  <p className="text-xs text-[#78716C] flex items-center gap-1.5 mt-0.5">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    {currentUser.name} ({currentUser.role === 'ADMIN' ? '管理员' : '接待员'})
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {currentUser.role === 'ADMIN' && (
-                  <a
-                    href={isAdminPage ? LINKS.main : LINKS.dashboard}
-                    className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
-                      isAdminPage
-                        ? 'bg-amber-700 text-white border-amber-700 shadow-xs'
-                        : 'bg-white text-[#57534E] border-[#D6CEC2] hover:bg-[#F5F2EA]'
-                    }`}
-                  >
-                    <i className={isAdminPage ? 'fa-solid fa-user-check' : 'fa-solid fa-user-shield'}></i>
-                    <span>{isAdminPage ? '返回签到主页' : '后台标签/配置'}</span>
-                  </a>
-                )}
-
-                <button
-                  onClick={() => setCurrentUser(null)}
-                  className="p-1.5 text-[#78716C] hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                  title="退出登录"
-                >
-                  <i className="fa-solid fa-right-from-bracket"></i>
-                </button>
-              </div>
-            </div>
-          </header>
-
-          {children({ showToast, currentUser })}
-        </div>
-      );
-    }
-
-    // Wrapper that reproduces the original <main> element
-    function PageMain({ children }) {
-      return (
-        <main className="flex-1 max-w-4xl w-full mx-auto p-3 md:p-6">
-          {children}
-        </main>
-      );
-    }
-
-    // Admin card + tab strip. The three original tabs (TAGS / GUESTS / TABLES) are now links
-    // to their own pages; "dashboard" holds the angpao summary that used to sit on top of TAGS.
-    function AdminPanelFrame({ active, children }) {
-      return (
-        <div className="bg-white rounded-2xl border border-[#E8E2D5] shadow-xs overflow-hidden">
-          <div className="flex border-b border-[#E8E2D5] bg-[#FAF7F2] overflow-x-auto">
-            {ADMIN_TABS.map(tab => (
-              <a
-                key={tab.id}
-                href={LINKS[tab.linkKey]}
-                className={`flex-1 min-w-[100px] py-3 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
-                  active === tab.id ? 'bg-white text-amber-900 border-b-2 border-amber-700' : 'text-[#78716C]'
-                }`}
-              >
-                <i className={tab.icon}></i>
-                <span>{tab.label}</span>
-              </a>
-            ))}
-          </div>
-
-          <div className="p-4 md:p-6 space-y-6">
-            {children}
-          </div>
-        </div>
-      );
-    }
-
-
-    // ==========================================
-    // MAIN PAGE (mainpage.html): check-in + angpao
-    // ==========================================
-
-    function CheckInPage() {
-      return (
-        <AppShell>
-          {({ showToast, currentUser }) => <CheckInContent showToast={showToast} currentUser={currentUser} />}
-        </AppShell>
-      );
-    }
-
-    function CheckInContent({ showToast, currentUser }) {
-      const [tags] = useStored('tags');
-      const [guests, setGuests] = useStored('guests');
-      const [groups] = useStored('groups');
-      const [tables] = useStored('tables');
-      const [angpaoRecords, setAngpaoRecords] = useStored('angpaoRecords');
+      const [tags, setTags] = useState(INITIAL_TAGS);
+      const [guests, setGuests] = useState(INITIAL_GUESTS);
+      const [groups, setGroups] = useState(INITIAL_GROUPS);
+      const [tables, setTables] = useState(INITIAL_TABLES);
+      const [angpaoRecords, setAngpaoRecords] = useState(INITIAL_ANGPAO);
 
       const [searchTerm, setSearchTerm] = useState('');
       const [sideFilter, setSideFilter] = useState('ALL');
@@ -472,6 +220,11 @@
       const [voidReason, setVoidReason] = useState('');
 
       const [toastMessage, setToastMessage] = useState(null);
+
+      const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3000);
+      };
 
       const toggleCheckIn = (guestId) => {
         setGuests(prev =>
@@ -621,9 +374,84 @@
         return { totalGuests, arrivedGuests, totalAngpaoRM };
       }, [guests, angpaoRecords]);
 
+      if (!currentUser) {
+        return (
+          <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
+            <div className="bg-white p-6 rounded-2xl border border-[#E8E2D5] shadow-md max-w-sm w-full space-y-4 text-center">
+              <div className="w-12 h-12 rounded-full bg-amber-700 text-white flex items-center justify-center mx-auto text-xl font-bold font-serif">
+                囍
+              </div>
+              <h2 className="text-lg font-bold text-[#2C2A29]">婚礼宾客签到系统登录</h2>
+              <button
+                onClick={() =>
+                  setCurrentUser({
+                    id: 'u1',
+                    username: 'staff01',
+                    name: '接待员 - 阿杰',
+                    role: 'ADMIN',
+                  })
+                }
+                className="w-full py-2.5 bg-amber-700 text-white rounded-xl font-bold hover:bg-amber-800 transition-colors"
+              >
+                以管理员登录体验
+              </button>
+            </div>
+          </div>
+        );
+      }
+
       return (
-        <>
-          <PageMain>
+        <div className="min-h-screen bg-[#FDFBF7] text-[#2C2A29] font-sans flex flex-col selection:bg-amber-100">
+          {toastMessage && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#322F2B] text-white text-xs md:text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 border border-amber-500/30">
+              <i className="fa-solid fa-circle-check text-amber-400"></i>
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          <header className="sticky top-0 z-30 bg-[#FFFDF9]/95 backdrop-blur-md border-b border-[#E8E2D5] shadow-xs">
+            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-lg font-bold shadow-xs">
+                  囍
+                </div>
+                <div>
+                  <h1 className="text-base font-bold text-[#2C2A29] leading-tight">婚礼宾客签到与礼金管理系统</h1>
+                  <p className="text-xs text-[#78716C] flex items-center gap-1.5 mt-0.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    {currentUser.name} ({currentUser.role === 'ADMIN' ? '管理员' : '接待员'})
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {currentUser.role === 'ADMIN' && (
+                  <button
+                    onClick={() => setActiveTab(activeTab === 'CHECKIN' ? 'ADMIN' : 'CHECKIN')}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
+                      activeTab === 'ADMIN'
+                        ? 'bg-amber-700 text-white border-amber-700 shadow-xs'
+                        : 'bg-white text-[#57534E] border-[#D6CEC2] hover:bg-[#F5F2EA]'
+                    }`}
+                  >
+                    <i className={activeTab === 'ADMIN' ? 'fa-solid fa-user-check' : 'fa-solid fa-user-shield'}></i>
+                    <span>{activeTab === 'ADMIN' ? '返回签到主页' : '后台标签/配置'}</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setCurrentUser(null)}
+                  className="p-1.5 text-[#78716C] hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  title="退出登录"
+                >
+                  <i className="fa-solid fa-right-from-bracket"></i>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 max-w-4xl w-full mx-auto p-3 md:p-6">
+            {activeTab === 'CHECKIN' ? (
               <div className="space-y-4">
                 <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E8E2D5] space-y-3">
                   <div className="grid grid-cols-2 gap-2 pb-1 border-b border-[#F0EBE1] text-center">
@@ -789,7 +617,21 @@
                   )}
                 </div>
               </div>
-          </PageMain>
+            ) : (
+              <AdminManagementPanel
+                tags={tags}
+                setTags={setTags}
+                guests={guests}
+                setGuests={setGuests}
+                groups={groups}
+                setGroups={setGroups}
+                tables={tables}
+                setTables={setTables}
+                angpaoRecords={angpaoRecords}
+                showToast={showToast}
+              />
+            )}
+          </main>
 
           {angpaoModalData.isOpen && angpaoModalData.guest && (
             <AngpaoEntryModal
@@ -869,10 +711,9 @@
               </div>
             </div>
           )}
-        </>
+        </div>
       );
     }
-
 
     // ==========================================
     // FAMILY GROUP CARD COMPONENT
@@ -1122,7 +963,7 @@
     }
 
     // ==========================================
-    // MODALS
+    // MODALS & ADMIN COMPONENTS
     // ==========================================
 
     function AngpaoEntryModal({ guest, groups, onClose, onSave }) {
@@ -1477,59 +1318,26 @@
       );
     }
 
-    // ==========================================
-    // ADMIN: dashboard.html
-    // ==========================================
+    function AdminManagementPanel({
+      tags,
+      setTags,
+      guests,
+      setGuests,
+      groups,
+      setGroups,
+      tables,
+      setTables,
+      angpaoRecords,
+      showToast,
+    }) {
+      const [adminTab, setAdminTab] = useState('TAGS');
 
-    function DashboardPage() {
-      return (
-        <AppShell isAdminPage>
-          {() => <DashboardContent />}
-        </AppShell>
-      );
-    }
-
-    function DashboardContent() {
-      const [angpaoRecords] = useStored('angpaoRecords');
-
-      return (
-        <PageMain>
-          <AdminPanelFrame active="dashboard">
-            <div className="space-y-6">
-                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-1">
-                  <h4 className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                    <i className="fa-solid fa-gift text-amber-700"></i> 后台礼金汇总统计 (仅管理员可见)
-                  </h4>
-                  <p className="text-2xl font-extrabold text-amber-900 pt-1">
-                    {formatRM(
-                      angpaoRecords.filter(r => !r.isVoided).reduce((acc, curr) => acc + curr.amount, 0)
-                    )}
-                  </p>
-                  <p className="text-[11px] text-amber-700">
-                    共 {angpaoRecords.filter(r => !r.isVoided).length} 笔有效礼金记录
-                  </p>
-                </div>
-            </div>
-          </AdminPanelFrame>
-        </PageMain>
-      );
-    }
-
-    // ==========================================
-    // ADMIN: tag.html
-    // ==========================================
-
-    function TagPage() {
-      return (
-        <AppShell isAdminPage>
-          {({ showToast }) => <TagContent showToast={showToast} />}
-        </AppShell>
-      );
-    }
-
-    function TagContent({ showToast }) {
-      const [tags, setTags] = useStored('tags');
       const [newTagName, setNewTagName] = useState('');
+      const [newGuestName, setNewGuestName] = useState('');
+      const [newGuestRel, setNewGuestRel] = useState('');
+      const [newGuestSide, setNewGuestSide] = useState('GROOM');
+      const [newGuestTable, setNewGuestTable] = useState('01');
+      const [selectedTagsForNewGuest, setSelectedTagsForNewGuest] = useState([]);
 
       const handleCreateTag = (e) => {
         e.preventDefault();
@@ -1562,10 +1370,77 @@
         }
       };
 
+      const handleAddSingleGuest = (e) => {
+        e.preventDefault();
+        if (!newGuestName.trim()) return;
+
+        const newG = {
+          id: `guest-${Date.now()}`,
+          name: newGuestName.trim(),
+          relationship: newGuestRel.trim() || '宾客',
+          tableNumber: newGuestTable,
+          side: newGuestSide,
+          tags: selectedTagsForNewGuest,
+          status: 'PENDING',
+          isActive: true,
+        };
+
+        setGuests(prev => [newG, ...prev]);
+        showToast(`成功登记新宾客: ${newG.name}`);
+        setNewGuestName('');
+        setNewGuestRel('');
+        setSelectedTagsForNewGuest([]);
+      };
+
       return (
-        <PageMain>
-          <AdminPanelFrame active="tag">
-            <div className="space-y-6">
+        <div className="bg-white rounded-2xl border border-[#E8E2D5] shadow-xs overflow-hidden">
+          <div className="flex border-b border-[#E8E2D5] bg-[#FAF7F2] overflow-x-auto">
+            <button
+              onClick={() => setAdminTab('TAGS')}
+              className={`flex-1 min-w-[100px] py-3 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                adminTab === 'TAGS' ? 'bg-white text-amber-900 border-b-2 border-amber-700' : 'text-[#78716C]'
+              }`}
+            >
+              <i className="fa-solid fa-tag text-amber-700"></i>
+              <span>全局标签管理</span>
+            </button>
+            <button
+              onClick={() => setAdminTab('GUESTS')}
+              className={`flex-1 min-w-[100px] py-3 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                adminTab === 'GUESTS' ? 'bg-white text-amber-900 border-b-2 border-amber-700' : 'text-[#78716C]'
+              }`}
+            >
+              <i className="fa-solid fa-user"></i>
+              <span>新增/管理宾客</span>
+            </button>
+            <button
+              onClick={() => setAdminTab('TABLES')}
+              className={`flex-1 min-w-[100px] py-3 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                adminTab === 'TABLES' ? 'bg-white text-amber-900 border-b-2 border-amber-700' : 'text-[#78716C]'
+              }`}
+            >
+              <i className="fa-solid fa-table-cells"></i>
+              <span>桌位设置</span>
+            </button>
+          </div>
+
+          <div className="p-4 md:p-6 space-y-6">
+            {adminTab === 'TAGS' && (
+              <div className="space-y-6">
+                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-1">
+                  <h4 className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                    <i className="fa-solid fa-gift text-amber-700"></i> 后台礼金汇总统计 (仅管理员可见)
+                  </h4>
+                  <p className="text-2xl font-extrabold text-amber-900 pt-1">
+                    {formatRM(
+                      angpaoRecords.filter(r => !r.isVoided).reduce((acc, curr) => acc + curr.amount, 0)
+                    )}
+                  </p>
+                  <p className="text-[11px] text-amber-700">
+                    共 {angpaoRecords.filter(r => !r.isVoided).length} 笔有效礼金记录
+                  </p>
+                </div>
+
                 <form onSubmit={handleCreateTag} className="flex gap-2">
                   <input
                     type="text"
@@ -1601,58 +1476,10 @@
                     </div>
                   ))}
                 </div>
-            </div>
-          </AdminPanelFrame>
-        </PageMain>
-      );
-    }
+              </div>
+            )}
 
-    // ==========================================
-    // ADMIN: add-guest.html
-    // ==========================================
-
-    function AddGuestPage() {
-      return (
-        <AppShell isAdminPage>
-          {({ showToast }) => <AddGuestContent showToast={showToast} />}
-        </AppShell>
-      );
-    }
-
-    function AddGuestContent({ showToast }) {
-      const [tables] = useStored('tables');
-      const [, setGuests] = useStored('guests');
-      const [newGuestName, setNewGuestName] = useState('');
-      const [newGuestRel, setNewGuestRel] = useState('');
-      const [newGuestSide, setNewGuestSide] = useState('GROOM');
-      const [newGuestTable, setNewGuestTable] = useState('01');
-      const [selectedTagsForNewGuest, setSelectedTagsForNewGuest] = useState([]);
-
-      const handleAddSingleGuest = (e) => {
-        e.preventDefault();
-        if (!newGuestName.trim()) return;
-
-        const newG = {
-          id: `guest-${Date.now()}`,
-          name: newGuestName.trim(),
-          relationship: newGuestRel.trim() || '宾客',
-          tableNumber: newGuestTable,
-          side: newGuestSide,
-          tags: selectedTagsForNewGuest,
-          status: 'PENDING',
-          isActive: true,
-        };
-
-        setGuests(prev => [newG, ...prev]);
-        showToast(`成功登记新宾客: ${newG.name}`);
-        setNewGuestName('');
-        setNewGuestRel('');
-        setSelectedTagsForNewGuest([]);
-      };
-
-      return (
-        <PageMain>
-          <AdminPanelFrame active="add-guest">
+            {adminTab === 'GUESTS' && (
               <form onSubmit={handleAddSingleGuest} className="space-y-4 text-xs">
                 <h3 className="font-bold text-sm text-[#2C2A29]">新增单个宾客</h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -1713,29 +1540,9 @@
                   录入宾客
                 </button>
               </form>
-          </AdminPanelFrame>
-        </PageMain>
-      );
-    }
+            )}
 
-    // ==========================================
-    // ADMIN: table-setting.html
-    // ==========================================
-
-    function TableSettingPage() {
-      return (
-        <AppShell isAdminPage>
-          {() => <TableSettingContent />}
-        </AppShell>
-      );
-    }
-
-    function TableSettingContent() {
-      const [tables] = useStored('tables');
-
-      return (
-        <PageMain>
-          <AdminPanelFrame active="table-setting">
+            {adminTab === 'TABLES' && (
               <div className="space-y-3 text-xs">
                 <h3 className="font-bold text-sm text-[#2C2A29]">桌位与容纳人数设置</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1749,36 +1556,15 @@
                   ))}
                 </div>
               </div>
-          </AdminPanelFrame>
-        </PageMain>
+            )}
+          </div>
+        </div>
       );
     }
 
-
-    // ==========================================
-    // BOOTSTRAP: mount whichever page this document declares
-    // ==========================================
-
-    const PAGES = {
-      mainpage: CheckInPage,
-      dashboard: DashboardPage,
-      tag: TagPage,
-      'add-guest': AddGuestPage,
-      'table-setting': TableSettingPage,
-    };
-
-    function mountPage() {
-      const rootElement = document.getElementById('root');
-      if (!rootElement) return;
-      const Page = PAGES[rootElement.getAttribute('data-page')];
-      if (!Page) return;
-      LINKS = getLinks(rootElement.getAttribute('data-base') || '');
-      ReactDOM.createRoot(rootElement).render(<Page />);
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', mountPage);
-    } else {
-      mountPage();
-    }
-})();
+    const rootElement = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<App />);
+  </script>
+</body>
+</html>
