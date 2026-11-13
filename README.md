@@ -5,12 +5,11 @@ The application lives in [WeddingAttendanceSystem/](WeddingAttendanceSystem/). S
 ```text
 WeddingAttendanceSystem/src/
 ├── main.tsx                     # StrictMode + one router + shared providers
-├── App.tsx                      # Only composes AppRouter
+├── App.tsx                      # Declares nested application routes
 ├── types.ts                     # Wedding domain types
 ├── data.ts                      # Template seed and legacy React seed graphs
 ├── index.css                    # React component styling
 ├── router/
-│   ├── AppRouter.tsx            # Nested route definitions
 │   └── ProtectedRoute.tsx       # Login/admin route guards
 ├── layouts/
 │   ├── AppLayout.tsx            # Shared header + content container

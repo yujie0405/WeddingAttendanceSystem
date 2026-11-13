@@ -22,9 +22,9 @@ Bootstrap CSS is loaded once through the existing CDN in `index.html`. Icons use
 
 ## Structure
 
-- `src/App.tsx`: only calls `AppRouter`.
+- `src/App.tsx`: declares application routes directly; page UI stays in page components.
 - `src/main.tsx`: mounts one BrowserRouter and the shared auth/wedding providers.
-- `src/router/`: nested routes and authenticated/admin route guards.
+- `src/router/`: authenticated/admin route guards; route definitions are in `App.tsx`.
 - `src/layouts/`: shared header, content shell, and admin tab layout.
 - `src/pages/MainPage/MainPage.tsx`: main attendance interface, search/filters, individual guest listing and modal orchestration.
 - `src/pages/Admin/`: Dashboard, Tags, Guests and Tables route components.

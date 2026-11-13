@@ -45,7 +45,6 @@ WeddingAttendanceSystem/
 │   ├── data.ts
 │   │
 │   ├── router/
-│   │   ├── AppRouter.tsx
 │   │   └── ProtectedRoute.tsx
 │   │
 │   ├── layouts/
@@ -115,17 +114,44 @@ Move and adapt reusable code from `src/components/` to the requested `src/compon
 
 ## Component arrangement and coding method
 
-### 1. Keep App.tsx as composition only
+### 1. Declare routes directly in App.tsx
 
-`App.tsx` must only call the root application component. Do not place main-page markup, guest forms, lists, filter controls, statistics, storage operations, or business handlers in it.
+`App.tsx` declares the nested React Router routes directly. Do not create an `AppRouter` wrapper component. Do not place main-page markup, guest forms, lists, filter controls, statistics, storage operations, or business handlers in it; those remain in the page components and shared providers.
 
 Expected shape:
 
 ```tsx
-import { AppRouter } from './router/AppRouter';
-
+import { Navigate, Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "./router/ProtectedRoute";
+import { AppLayout } from "./layouts/AppLayout";
+import { AdminLayout } from "./layouts/AdminLayout";
+import { MainPage } from "./pages/MainPage/MainPage";
+import { Dashboard } from "./pages/Admin/Dashboard/Dashboard";
+import { Tags } from "./pages/Admin/Tags/Tags";
+import { Guests } from "./pages/Admin/Guests/Guests";
+import { Tables } from "./pages/Admin/Tables/Tables";
+import { LoginPage } from "./pages/LoginPage";
 export default function App() {
-  return <AppRouter />;
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route index element={<MainPage />} />
+          <Route element={<ProtectedRoute admin />}>
+            <Route path="admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="tag" element={<Tags />} />
+              <Route path="add-guest" element={<Guests />} />
+              <Route path="table-setting" element={<Tables />} />
+            </Route>
+          </Route>
+        </Route>
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 ```
 
@@ -269,7 +295,7 @@ Prefer the existing React domain naming convention, extending it where needed:
 
 1. Recheck the README, source, latest template, dependencies, and any newer user changes.
 2. Define the domain adapters, storage migration, and shared providers without resetting data.
-3. Arrange the router, layouts, and singular `component/` directory; reduce `App.tsx` to composition.
+3. Arrange the router, layouts, and singular `component/` directory; keep route declarations in `App.tsx`.
 4. Implement `MainPage/MainPage.tsx` from the current main template and extract shared listings/modals.
 5. Implement the four admin routes with `NavTag`, shared `Listing`, and the current pagination rules.
 6. Adapt existing navigation, tag selector, badges, icons, and external styling. Remove obsolete implementations only after replacements work.
@@ -277,7 +303,7 @@ Prefer the existing React domain naming convention, extending it where needed:
 
 ## Acceptance checks
 
-- `App.tsx` only composes the root component, and the requested exact `MainPage` and `navtag.tsx` paths exist.
+- `App.tsx` declares routes directly without an `AppRouter` wrapper, and the requested exact `MainPage` and `navtag.tsx` paths exist.
 - `Listing`, `NavTag`, pagination, and modals are reusable and typed; no duplicated route-level domain stores exist.
 - Check-in/reversal, family check-in, all search/filter controls, guest creation/editing, tags, gifts/history/voiding, and login/logout work across routes.
 - Guest relationships reflect current tags and preserve legacy values.
