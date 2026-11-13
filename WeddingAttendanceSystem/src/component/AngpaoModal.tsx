@@ -1,3 +1,5 @@
+import { LocalizedForm } from "./LocalizedForm";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import type { AngpaoType, Guest } from "../types";
 import { useWedding } from "../hooks/useWedding";
@@ -9,6 +11,8 @@ export function AngpaoModal({
   guest: Guest;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
+
   const { state, actions, run } = useWedding();
   const group = state.groups.find((g) => g.id === guest.groupId);
   const [type, setType] = useState<AngpaoType>("individual");
@@ -16,8 +20,8 @@ export function AngpaoModal({
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <Modal title="登记礼金 (RM)" onClose={onClose}>
-      <form
+    <Modal title={t("Modal.Gift.Title")} onClose={onClose}>
+      <LocalizedForm
         className="wedding-space-y-3"
         onSubmit={async (e) => {
           e.preventDefault();
@@ -32,7 +36,7 @@ export function AngpaoModal({
                   amount: Number(amount),
                   notes,
                 }),
-              "成功登记礼金",
+              "Notifications.GiftRegistered",
             )
           )
             onClose();
@@ -46,19 +50,19 @@ export function AngpaoModal({
               className={type === "individual" ? "selected" : ""}
               onClick={() => setType("individual")}
             >
-              个人: {guest.name}
+              {t("Modal.Gift.Individual", { name: guest.name })}
             </button>
             <button
               type="button"
               className={type === "family" ? "selected" : ""}
               onClick={() => setType("family")}
             >
-              家庭: {group.name}
+              {t("Modal.Gift.Family", { name: group.name })}
             </button>
           </div>
         )}
         <label className="admin-label">
-          礼金金额 (RM)
+          {t("Modal.Gift.Amount")}
           <input
             className="admin-input gift-amount"
             type="number"
@@ -82,10 +86,10 @@ export function AngpaoModal({
           ))}
         </div>
         <label className="admin-label">
-          祝词 / 备注
+          {t("Modal.Gift.Notes")}
           <input
             className="admin-input"
-            placeholder="例如：祝百年好合 / 永结同心"
+            placeholder={t("Modal.Gift.NotesPlaceholder")}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -96,17 +100,17 @@ export function AngpaoModal({
             className="admin-outline-button"
             onClick={onClose}
           >
-            取消
+            {t("Common.Cancel")}
           </button>
           <button
             type="submit"
             className="admin-primary-button"
             disabled={busy}
           >
-            确认保存
+            {t("Common.ConfirmSave")}
           </button>
         </div>
-      </form>
+      </LocalizedForm>
     </Modal>
   );
 }

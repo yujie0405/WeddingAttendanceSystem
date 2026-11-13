@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useWedding } from "../hooks/useWedding";
 import { Modal } from "./Modal";
@@ -8,26 +9,25 @@ export function FamilyCheckInModal({
   groupId: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
+
   const { state, actions, run } = useWedding();
   const [busy, setBusy] = useState(false);
   const group = state.groups.find((g) => g.id === groupId);
   return (
-    <Modal title="全家一键签到确认" onClose={onClose}>
+    <Modal title={t("Modal.Family.Title")} onClose={onClose}>
       <p className="admin-help">
-        是否确认将 <strong>{group?.name}</strong> 剩余的{" "}
-        <strong>
-          {
-            state.guests.filter(
-              (g) =>
-                g.isActive && g.groupId === groupId && g.status === "pending",
-            ).length
-          }
-        </strong>{" "}
-        位未到成员一次性标记为已到场？
+        {t("Modal.Family.Confirmation", {
+          name: group?.name || "",
+          count: state.guests.filter(
+            (g) =>
+              g.isActive && g.groupId === groupId && g.status === "pending",
+          ).length,
+        })}
       </p>
       <div className="modal-actions">
         <button className="admin-outline-button" onClick={onClose}>
-          取消
+          {t("Common.Cancel")}
         </button>
         <button
           className="admin-primary-button"
@@ -35,13 +35,16 @@ export function FamilyCheckInModal({
           onClick={async () => {
             setBusy(true);
             if (
-              await run(() => actions.checkInFamily(groupId), "已完成全家签到")
+              await run(
+                () => actions.checkInFamily(groupId),
+                "Notifications.FamilyCheckedIn",
+              )
             )
               onClose();
             setBusy(false);
           }}
         >
-          确认一键签到
+          {t("Modal.Family.Confirm")}
         </button>
       </div>
     </Modal>

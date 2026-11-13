@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheck,
@@ -24,6 +25,8 @@ export function GuestCard({
   onHistory: () => void;
   onFamily: () => void;
 }) {
+  const { t } = useTranslation();
+
   const arrived = g.status === "arrived";
   const gifts = state.angpaoRecords.filter(
     (r) =>
@@ -44,30 +47,36 @@ export function GuestCard({
             <span className="guest-relationship">{g.relationship}</span>
             <SideBadge side={g.side} />
             {g.tagIds.map((id) => {
-              const tag = state.tags.find((t) => t.id === id);
+              const tag = state.tags.find((item) => item.id === id);
               return tag ? <TagBadge key={id} tag={tag} /> : null;
             })}
             <AttendanceBadge guest={g} />
           </div>
           <div className="guest-meta">
             <span>
-              桌号: <strong>{g.tableNo} 桌</strong>
-              {g.seatNo && ` (座位 ${g.seatNo})`}
+              {t("Common.TableNumber", { table: g.tableNo })}
+              {g.seatNo && t("Common.SeatParenthesis", { seat: g.seatNo })}
             </span>
-            {g.groupName && <span>所属家庭: {g.groupName}</span>}
-            {g.notes && <span className="guest-note">备注: {g.notes}</span>}
+            {g.groupName && (
+              <span>{t("Common.FamilyName", { name: g.groupName })}</span>
+            )}
+            {g.notes && (
+              <span className="guest-note">
+                {t("Common.Note", { note: g.notes })}
+              </span>
+            )}
             {g.groupId && (
               <button
                 className="wedding-text-emerald-700 wedding-font-semibold"
                 onClick={onFamily}
               >
-                全家签到
+                {t("Main.FamilyCheckIn")}
               </button>
             )}
           </div>
         </div>
         <button
-          title="修改宾客资料及标签"
+          title={t("Main.EditGuest")}
           className="guest-edit"
           onClick={onEdit}
         >
@@ -77,14 +86,14 @@ export function GuestCard({
       <div className="guest-actions">
         <div className="d-flex flex-wrap align-items-center wedding-gap-2">
           <button className="gift-button" onClick={onGift}>
-            <FontAwesomeIcon icon={faGift} /> 登记礼金
+            <FontAwesomeIcon icon={faGift} /> {t("Main.RegisterGift")}
           </button>
           {gifts.length > 0 && (
             <button
               className="wedding-text-xs wedding-text-amber-800 wedding-font-semibold"
               onClick={onHistory}
             >
-              已登记 ({gifts.length} 笔)
+              {t("Main.RecordedGifts", { count: gifts.length })}
             </button>
           )}
         </div>
@@ -93,7 +102,7 @@ export function GuestCard({
           onClick={onCheckIn}
         >
           <FontAwesomeIcon icon={arrived ? faCheck : faUserCheck} />{" "}
-          {arrived ? "已到 (撤销)" : "立即签到"}
+          {arrived ? t("Main.UndoCheckIn") : t("Main.CheckIn")}
         </button>
       </div>
     </article>

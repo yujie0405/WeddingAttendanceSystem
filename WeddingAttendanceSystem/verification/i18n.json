@@ -1,0 +1,22 @@
+{
+  "keys": 217,
+  "checks": [
+    "217 matching JSON keys and interpolation parameters",
+    "Chinese default, English switch, HTML/title/preference and unchanged domain/auth storage",
+    "Language switches preserve filters and open edit drafts without saving",
+    "Live bilingual validation/notifications, decimal gifts and unchanged user notes",
+    "English gift history, family access, bilingual voiding, totals and privacy",
+    "English guest creation/editing with original tag names",
+    "English capacity validation, deletion confirmation and non-reused table numbers",
+    "Login draft, persisted preference across logout/refresh, and staff route guards",
+    "Saved English survives refresh and login",
+    "English zero/one/many plural forms",
+    "20/10 pagination, boundaries, search reset and page preservation while switching",
+    "Recovery/source conflicts translate live without writing or losing source data",
+    "Typed import errors switch language and invalid imports do not mutate records",
+    "Invalid saved language safely falls back to Chinese",
+    "Blocked preference storage does not prevent language switching",
+    "Both languages: every route fits desktop/mobile with no raw resource keys"
+  ],
+  "errors": []
+}

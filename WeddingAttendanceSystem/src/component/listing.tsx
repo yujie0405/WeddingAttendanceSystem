@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Key, ReactNode } from "react";
 export interface ListingColumn<T> {
   key: string;
@@ -13,8 +14,10 @@ type Props<T> = {
   | { mode: "table"; columns: ListingColumn<T>[]; label: string }
 );
 export function Listing<T>(props: Props<T>) {
+  const { t } = useTranslation();
+
   if (!props.items.length)
-    return <p className="admin-empty">{props.empty || "未找到匹配的记录。"}</p>;
+    return <p className="admin-empty">{props.empty || t("Common.Empty")}</p>;
   if (props.mode === "cards")
     return (
       <div className={props.className || "wedding-space-y-3"}>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import type { AngpaoType } from "../types";
 import { useAuth } from "../hooks/useAuth";
@@ -20,6 +21,8 @@ export function AngpaoHistoryModal({
   financial?: boolean;
   onClose: () => void;
 }) {
+  const { t, i18n } = useTranslation();
+
   const { state } = useWedding();
   const { user } = useAuth();
   const [voidId, setVoidId] = useState<string>();
@@ -32,9 +35,15 @@ export function AngpaoHistoryModal({
   );
   return (
     <>
-      <Modal title={`【${target.name}】礼金记录明细`} onClose={onClose} wide>
+      <Modal
+        title={t("Modal.History.Title", { name: target.name })}
+        onClose={onClose}
+        wide
+      >
         <div className="wedding-space-y-2">
-          {!records.length && <p className="admin-empty">暂无礼金登记记录</p>}
+          {!records.length && (
+            <p className="admin-empty">{t("Modal.History.Empty")}</p>
+          )}
           {records.map((r) => (
             <article
               key={r.id}
@@ -42,29 +51,42 @@ export function AngpaoHistoryModal({
             >
               <div className="d-flex justify-content-between wedding-gap-2">
                 <strong>
-                  {r.targetType === "family" ? "全家礼金" : "个人礼金"} -{" "}
-                  {r.targetName}
+                  {r.targetType === "family"
+                    ? t("Modal.History.FamilyLabel")
+                    : t("Common.IndividualGift")}{" "}
+                  - {r.targetName}
                 </strong>
                 {!r.isVoided && user?.role === "admin" && (
                   <button
                     className="wedding-text-red-600"
                     onClick={() => setVoidId(r.id)}
                   >
-                    作废
+                    {t("Modal.History.Void")}
                   </button>
                 )}
               </div>
               <p className="admin-help">
-                登记人: {r.recordedBy} | 时间: {r.timestamp}
+                {t("Modal.History.Meta", {
+                  name: r.recordedBy,
+                  time: r.timestamp,
+                })}
               </p>
-              {r.notes && <p className="admin-help">备注: {r.notes}</p>}
+              {r.notes && (
+                <p className="admin-help">
+                  {t("Common.Note", { note: r.notes })}
+                </p>
+              )}
               {r.isVoided && (
                 <p className="wedding-text-red-600 admin-help">
-                  【已作废】原因: {r.voidReason}
+                  {t("Modal.History.VoidReason", {
+                    reason: r.voidReason || "",
+                  })}
                 </p>
               )}
               {financial && user?.role === "admin" && (
-                <p className="admin-money">{formatRM(r.amount)}</p>
+                <p className="admin-money">
+                  {formatRM(r.amount, i18n.resolvedLanguage)}
+                </p>
               )}
             </article>
           ))}

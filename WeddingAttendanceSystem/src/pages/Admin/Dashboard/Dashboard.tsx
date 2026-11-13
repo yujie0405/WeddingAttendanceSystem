@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGift, faList } from "@fortawesome/free-solid-svg-icons";
@@ -11,6 +12,8 @@ import { AttendanceBadge, SearchField, SideBadge } from "../../../component/ui";
 import { AngpaoHistoryModal } from "../../../component/AngpaoHistoryModal";
 import type { HistoryTarget } from "../../../component/AngpaoHistoryModal";
 export function Dashboard() {
+  const { t, i18n } = useTranslation();
+
   const { state } = useWedding();
   const [search, setSearch] = useState("");
   const [target, setTarget] = useState<HistoryTarget>();
@@ -18,7 +21,7 @@ export function Dashboard() {
   const columns: ListingColumn<Guest>[] = [
     {
       key: "name",
-      title: "姓名",
+      title: t("Common.Name"),
       render: (g) => (
         <>
           <strong>{g.name}</strong>
@@ -30,32 +33,39 @@ export function Dashboard() {
     },
     {
       key: "side",
-      title: "婚礼边",
+      title: t("Common.Side"),
       render: (g) => <SideBadge side={g.side} />,
     },
-    { key: "table", title: "桌号", render: (g) => `${g.tableNo} 桌` },
+    {
+      key: "table",
+      title: t("Common.Table"),
+      render: (g) => t("Common.TableNumber", { table: g.tableNo }),
+    },
     {
       key: "status",
-      title: "签到状态",
+      title: t("Common.Status"),
       render: (g) => <AttendanceBadge guest={g} />,
     },
     {
       key: "amount",
-      title: "个人礼金",
+      title: t("Common.IndividualGift"),
       render: (g) =>
         validGifts(state).some(
           (r) => r.targetType === "individual" && r.targetId === g.id,
         ) ? (
           <span className="admin-money">
-            {formatRM(giftTotal(state, "individual", g.id))}
+            {formatRM(
+              giftTotal(state, "individual", g.id),
+              i18n.resolvedLanguage,
+            )}
           </span>
         ) : (
-          <span className="admin-muted">未登记</span>
+          <span className="admin-muted">{t("Common.NotRecorded")}</span>
         ),
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("Common.Actions"),
       render: (g) => (
         <div className="admin-row-actions">
           <button
@@ -64,7 +74,7 @@ export function Dashboard() {
               setTarget({ name: g.name, guestId: g.id, type: "individual" })
             }
           >
-            个人明细
+            {t("Admin.Dashboard.Details")}
           </button>
           {g.groupId &&
             state.angpaoRecords.some(
@@ -80,7 +90,7 @@ export function Dashboard() {
                   })
                 }
               >
-                家庭礼金
+                {t("Common.FamilyGift")}
               </button>
             )}
         </div>
@@ -91,41 +101,52 @@ export function Dashboard() {
     <>
       <div className="admin-summary-grid">
         <div className="attendance-stat">
-          <h2>全场出席进度 (Arrived / Total)</h2>
+          <h2>{t("Main.ArrivedPeople")}</h2>
           <strong>
-            {active.filter((g) => g.status === "arrived").length} /{" "}
-            {active.length} 人
+            {t("Main.ArrivalSummary", {
+              arrived: active.filter((g) => g.status === "arrived").length,
+              count: active.length,
+            })}
           </strong>
         </div>
         <div className="gift-stat">
           <h2>
-            <FontAwesomeIcon icon={faGift} /> 后台礼金汇总统计（仅管理员可见）
+            <FontAwesomeIcon icon={faGift} /> {t("Admin.Dashboard.TotalTitle")}
           </h2>
-          <strong>{formatRM(giftTotal(state))}</strong>
-          <p>共 {validGifts(state).length} 笔有效礼金记录</p>
+          <strong>{formatRM(giftTotal(state), i18n.resolvedLanguage)}</strong>
+          <p>
+            {t("Admin.Dashboard.ValidGiftCount", {
+              count: validGifts(state).length,
+            })}
+          </p>
         </div>
       </div>
       <section className="admin-section">
         <h2 className="admin-section-title">
-          <FontAwesomeIcon icon={faList} /> 宾客与礼金
+          <FontAwesomeIcon icon={faList} /> {t("Admin.Dashboard.GuestGifts")}
         </h2>
         <SearchField
           value={search}
           onChange={setSearch}
-          placeholder="搜索姓名 / 家庭 / 桌号"
+          placeholder={t("Admin.Dashboard.Search")}
         />
         <Listing
           mode="table"
-          label="宾客个人礼金列表"
+          label={t("Admin.Dashboard.ListLabel")}
           items={state.guests.filter((g) => matchesGuest(g, search))}
           getKey={(g) => g.id}
           columns={columns}
         />
       </section>
       <p className="admin-gift-breakdown">
-        个人礼金 {formatRM(giftTotal(state, "individual"))} ＋ 家庭礼金{" "}
-        {formatRM(giftTotal(state, "family"))} ＝ 合计{" "}
-        {formatRM(giftTotal(state))}
+        {t("Admin.Dashboard.Breakdown", {
+          individual: formatRM(
+            giftTotal(state, "individual"),
+            i18n.resolvedLanguage,
+          ),
+          family: formatRM(giftTotal(state, "family"), i18n.resolvedLanguage),
+          total: formatRM(giftTotal(state), i18n.resolvedLanguage),
+        })}
       </p>
       {target && (
         <AngpaoHistoryModal

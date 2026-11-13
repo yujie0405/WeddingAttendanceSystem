@@ -1,0 +1,22 @@
+[
+  {
+    "text": " Dashboard",
+    "scroll": 100,
+    "width": 100
+  },
+  {
+    "text": " Tags",
+    "scroll": 100,
+    "width": 100
+  },
+  {
+    "text": " Add / Edit Guests",
+    "scroll": 132,
+    "width": 132
+  },
+  {
+    "text": " Table Settings",
+    "scroll": 113,
+    "width": 113
+  }
+]

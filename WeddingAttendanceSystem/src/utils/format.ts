@@ -1,5 +1,5 @@
-export const formatRM = (amount: number) =>
-  `RM ${amount.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const formatRM = (amount: number, language = "zh-CN") =>
+  `RM ${amount.toLocaleString(language === "en" ? "en-MY" : "zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 export const timeNow = () => new Date().toTimeString().slice(0, 5);
 export const dateTimeNow = () => {
   const d = new Date();

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useWedding } from "../../hooks/useWedding";
 import { useGuests } from "../../hooks/useGuests";
@@ -11,6 +12,8 @@ import { FamilyCheckInModal } from "../../component/FamilyCheckInModal";
 import { GuestCard } from "./GuestCard";
 import type { AttendanceStatus, WeddingSide } from "../../types";
 export function MainPage() {
+  const { t } = useTranslation();
+
   const { state, run } = useWedding();
   const { guests, toggleCheckIn } = useGuests();
   const [search, setSearch] = useState("");
@@ -23,10 +26,10 @@ export function MainPage() {
     id: string;
   }>();
   const active = guests.filter((g) => g.isActive);
-  const selectedTable = state.tables.some((t) => t.tableNo === table)
+  const selectedTable = state.tables.some((item) => item.tableNo === table)
     ? table
     : "all";
-  const selectedTag = state.tags.some((t) => t.id === tag) ? tag : "all";
+  const selectedTag = state.tags.some((item) => item.id === tag) ? tag : "all";
   const visible = active.filter(
     (g) =>
       matchesGuest(g, search) &&
@@ -42,21 +45,23 @@ export function MainPage() {
       <section className="checkin-search">
         <div className="checkin-summary">
           <div>
-            <span>全场出席进度 (Arrived / Total)</span>
+            <span>{t("Main.ArrivedPeople")}</span>
             <strong>
-              {active.filter((g) => g.status === "arrived").length} /{" "}
-              {active.length} 人
+              {t("Main.ArrivalSummary", {
+                arrived: active.filter((g) => g.status === "arrived").length,
+                count: active.length,
+              })}
             </strong>
           </div>
           <div>
-            <span>礼金录入状态</span>
-            <b>仅管理员后台可查看金额</b>
+            <span>{t("Main.GiftStatus")}</span>
+            <b>{t("Main.GiftPrivacy")}</b>
           </div>
         </div>
         <SearchField
           value={search}
           onChange={setSearch}
-          placeholder="搜索宾客姓名 / 家庭名称 / 桌号 (如: 张伟, 03)"
+          placeholder={t("Main.SearchPlaceholder")}
         />
         <div className="checkin-filters">
           <div className="filter-group">
@@ -67,7 +72,13 @@ export function MainPage() {
                 aria-pressed={side === value}
                 onClick={() => setSide(value)}
               >
-                {{ all: "全部男/女", groom: "男方", bride: "女方" }[value]}
+                {
+                  {
+                    all: t("Main.AllSides"),
+                    groom: t("Common.Groom"),
+                    bride: t("Common.Bride"),
+                  }[value]
+                }
               </button>
             ))}
           </div>
@@ -79,31 +90,37 @@ export function MainPage() {
                 aria-pressed={status === value}
                 onClick={() => setStatus(value)}
               >
-                {{ all: "状态", pending: "未到", arrived: "已到" }[value]}
+                {
+                  {
+                    all: t("Main.StatusFilter"),
+                    pending: t("Main.PendingFilter"),
+                    arrived: t("Main.ArrivedFilter"),
+                  }[value]
+                }
               </button>
             ))}
           </div>
           <select
-            aria-label="筛选桌号"
+            aria-label={t("Main.FilterTable")}
             value={selectedTable}
             onChange={(e) => setTable(e.target.value)}
           >
-            <option value="all">所有桌号</option>
-            {state.tables.map((t) => (
-              <option key={t.id} value={t.tableNo}>
-                {t.tableNo} 桌
+            <option value="all">{t("Main.AllTables")}</option>
+            {state.tables.map((item) => (
+              <option key={item.id} value={item.tableNo}>
+                {t("Common.TableNumber", { table: item.tableNo })}
               </option>
             ))}
           </select>
           <select
-            aria-label="筛选标签"
+            aria-label={t("Main.FilterTag")}
             value={selectedTag}
             onChange={(e) => setTag(e.target.value)}
           >
-            <option value="all">全部自定义标签</option>
-            {state.tags.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
+            <option value="all">{t("Main.AllTags")}</option>
+            {state.tags.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
               </option>
             ))}
           </select>
@@ -113,7 +130,7 @@ export function MainPage() {
         mode="cards"
         items={visible}
         getKey={(g) => g.id}
-        empty="未找到匹配的宾客，请尝试更改搜索词或筛选条件。"
+        empty={t("Main.Empty")}
         renderItem={(g) => (
           <GuestCard
             guest={g}
@@ -122,8 +139,14 @@ export function MainPage() {
               void run(
                 () => toggleCheckIn(g.id),
                 g.status === "pending"
-                  ? `[${g.name}] 已签到`
-                  : `已撤销 [${g.name}] 的签到`,
+                  ? {
+                      key: "Notifications.GuestCheckedIn",
+                      params: { name: g.name },
+                    }
+                  : {
+                      key: "Notifications.CheckInUndone",
+                      params: { name: g.name },
+                    },
               );
             }}
             onEdit={() => setModal({ kind: "edit", id: g.id })}

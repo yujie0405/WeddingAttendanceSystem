@@ -1,3 +1,4 @@
+import { AppError } from "../i18n/messages";
 import { LEGACY_REACT_SEED, TEMPLATE_SEED } from "../data";
 import type {
   AngpaoRecord,
@@ -11,18 +12,18 @@ import { tagColor } from "../utils/format";
 type RecordValue = Record<string, unknown>;
 function object(value: unknown): RecordValue {
   if (!value || typeof value !== "object" || Array.isArray(value))
-    throw new Error("数据格式不正确：需要一个对象。");
+    throw new AppError("Errors.DataObject");
   return value as RecordValue;
 }
 function text(value: unknown): string {
-  if (typeof value !== "string") throw new Error("数据中有无效文字字段。");
+  if (typeof value !== "string") throw new AppError("Errors.DataText");
   return value;
 }
 function optional(value: unknown) {
   return value === undefined || value === null ? undefined : text(value);
 }
 function array(value: unknown): unknown[] {
-  if (!Array.isArray(value)) throw new Error("数据中缺少记录列表。");
+  if (!Array.isArray(value)) throw new AppError("Errors.DataArray");
   return value;
 }
 function strings(value: unknown) {
@@ -30,30 +31,30 @@ function strings(value: unknown) {
 }
 function number(value: unknown) {
   if (typeof value !== "number" || !Number.isFinite(value))
-    throw new Error("数据中有无效数字。");
+    throw new AppError("Errors.DataNumber");
   return value;
 }
 function side(value: unknown) {
   const v = text(value).toLowerCase();
-  if (v !== "groom" && v !== "bride") throw new Error("婚礼边数据无效。");
+  if (v !== "groom" && v !== "bride") throw new AppError("Errors.DataSide");
   return v;
 }
 function unique(values: string[], label: string) {
   if (new Set(values).size !== values.length)
-    throw new Error(`${label}存在重复编号。`);
+    throw new AppError("Errors.Duplicate", { entityKey: label });
 }
 export function normalizeData(raw: unknown): WeddingState {
   const wrapper = object(raw);
   const s = object(wrapper.data ?? wrapper);
   if (s.version !== undefined && s.version !== 2)
-    throw new Error("此数据版本暂不支持，请保留原始备份。");
+    throw new AppError("Errors.DataVersion");
   const guests = array(s.guests).map((value): Guest => {
     const g = object(value);
     const status = text(g.status).toLowerCase();
     if (status !== "pending" && status !== "arrived")
-      throw new Error("签到状态无效。");
+      throw new AppError("Errors.DataAttendance");
     if (g.isActive !== undefined && typeof g.isActive !== "boolean")
-      throw new Error("宾客状态无效。");
+      throw new AppError("Errors.DataActivity");
     return {
       id: text(g.id),
       name: text(g.name),
@@ -88,7 +89,7 @@ export function normalizeData(raw: unknown): WeddingState {
       capacity <= 0 ||
       !/^\d+$/.test(tableNo)
     )
-      throw new Error("桌号或容纳人数无效。");
+      throw new AppError("Errors.DataTable");
     return {
       id: t.id === undefined ? `table-${tableNo}` : text(t.id),
       tableNo,
@@ -122,11 +123,11 @@ export function normalizeData(raw: unknown): WeddingState {
     const r = object(value);
     const targetType = text(r.targetType ?? r.recipientType).toLowerCase();
     if (targetType !== "individual" && targetType !== "family")
-      throw new Error("礼金类型无效。");
+      throw new AppError("Errors.DataGiftType");
     const amount = number(r.amount);
-    if (amount <= 0) throw new Error("礼金金额必须大于零。");
+    if (amount <= 0) throw new AppError("Errors.DataGiftAmount");
     if (r.isVoided !== undefined && typeof r.isVoided !== "boolean")
-      throw new Error("作废状态无效。");
+      throw new AppError("Errors.DataVoid");
     return {
       id: text(r.id),
       targetType,
@@ -142,45 +143,45 @@ export function normalizeData(raw: unknown): WeddingState {
   });
   unique(
     guests.map((g) => g.id),
-    "宾客",
+    "Guest",
   );
   unique(
     tags.map((t) => t.id),
-    "标签",
+    "Tag",
   );
   unique(
     groups.map((g) => g.id),
-    "家庭",
+    "Family",
   );
   unique(
     tables.map((t) => t.id),
-    "桌位",
+    "Table",
   );
   unique(
     tables.map((t) => String(Number(t.tableNo))),
-    "桌号",
+    "TableNumber",
   );
   unique(
     angpaoRecords.map((r) => r.id),
-    "礼金",
+    "Gift",
   );
   for (const g of guests) {
     if (
       !tables.some((t) => t.tableNo === g.tableNo) ||
       (g.groupId && !groups.some((f) => f.id === g.groupId))
     )
-      throw new Error("宾客引用了不存在的桌位或家庭，请先修复源数据。");
+      throw new AppError("Errors.DataGuestReference");
   }
   for (const g of groups)
     if (g.tableNos.some((n) => !tables.some((t) => t.tableNo === n)))
-      throw new Error("家庭引用了不存在的桌位。");
+      throw new AppError("Errors.DataFamilyReference");
   for (const r of angpaoRecords)
     if (
       !(r.targetType === "individual" ? guests : groups).some(
         (item) => item.id === r.targetId,
       )
     )
-      throw new Error("礼金引用了不存在的宾客或家庭。");
+      throw new AppError("Errors.DataGiftReference");
   // Deleted tag references can remain in records; the original template permits tag deletion.
   const highest = Math.max(0, ...tables.map((t) => Number(t.tableNo)));
   const next =
@@ -190,7 +191,7 @@ export function normalizeData(raw: unknown): WeddingState {
     next < 1 ||
     !Number.isSafeInteger(highest + 1)
   )
-    throw new Error("桌号计数器无效。");
+    throw new AppError("Errors.DataCounter");
   return {
     version: 2,
     guests,
@@ -205,7 +206,8 @@ export function normalizeUser(value: unknown): CurrentUser | null {
   if (value === null) return null;
   const u = object(value);
   const role = text(u.role).toLowerCase();
-  if (role !== "admin" && role !== "staff") throw new Error("用户角色无效。");
+  if (role !== "admin" && role !== "staff")
+    throw new AppError("Errors.DataRole");
   return {
     name: text(u.name),
     role,
@@ -246,10 +248,7 @@ export function migrate(): WeddingState {
   const template = ["guests", "groups", "tags", "tables", "angpaoRecords"].some(
     (key) => localStorage.getItem("wedding-template-v1:" + key) !== null,
   );
-  if (react && template)
-    throw new Error(
-      "检测到现有 React 数据和模板数据。请选择要使用的数据来源；两份原始数据都会保留。",
-    );
+  if (react && template) throw new AppError("Errors.DataConflict");
   return react
     ? legacySource("react")
     : template

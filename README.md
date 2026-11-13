@@ -9,6 +9,13 @@ WeddingAttendanceSystem/src/
 ├── types.ts                     # Wedding domain types
 ├── data.ts                      # Template seed and legacy React seed graphs
 ├── index.css                    # React component styling
+├── locales/
+│   ├── CN.json                  # Simplified Chinese; keys grouped by page
+│   └── EN.json                  # English; matching keys and interpolation
+├── i18n/
+│   ├── index.ts                 # Initialization and saved language preference
+│   ├── i18next.d.ts             # Typed resource keys
+│   └── messages.ts              # Language-independent messages/errors
 ├── router/
 │   └── ProtectedRoute.tsx       # Login/admin route guards
 ├── layouts/
@@ -36,6 +43,8 @@ WeddingAttendanceSystem/src/
 │   ├── navtag.tsx
 │   ├── listing.tsx
 │   ├── pagination.tsx
+│   ├── LanguageSwitcher.tsx
+│   ├── LocalizedForm.tsx
 │   ├── tagListing.tsx
 │   ├── ui.tsx
 │   ├── Modal.tsx

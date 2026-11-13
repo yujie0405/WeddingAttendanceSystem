@@ -1,3 +1,5 @@
+import { LocalizedForm } from "./LocalizedForm";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import type { Guest, GuestDraft } from "../types";
 import { useWedding } from "../hooks/useWedding";
@@ -10,6 +12,8 @@ export function GuestEditModal({
   guest: Guest;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
+
   const { state, actions, run } = useWedding();
   const [draft, setDraft] = useState<GuestDraft>({
     name: guest.name,
@@ -20,12 +24,12 @@ export function GuestEditModal({
     tagIds: [...guest.tagIds],
   });
   const [busy, setBusy] = useState(false);
-  const relationships = [...new Set(state.tags.map((t) => t.name))];
+  const relationships = [...new Set(state.tags.map((item) => item.name))];
   const legacy =
     guest.relationship && !relationships.includes(guest.relationship);
   return (
-    <Modal title="编辑宾客资料与标签" onClose={onClose} wide>
-      <form
+    <Modal title={t("Modal.EditGuest.Title")} onClose={onClose} wide>
+      <LocalizedForm
         className="wedding-space-y-3"
         onSubmit={async (e) => {
           e.preventDefault();
@@ -34,7 +38,7 @@ export function GuestEditModal({
           if (
             await run(
               () => actions.editGuest(guest.id, draft),
-              "已更新宾客资料",
+              "Notifications.GuestUpdated",
             )
           )
             onClose();
@@ -42,7 +46,7 @@ export function GuestEditModal({
         }}
       >
         <label className="admin-label">
-          宾客姓名
+          {t("Modal.EditGuest.Name")}
           <input
             className="admin-input"
             required
@@ -52,9 +56,11 @@ export function GuestEditModal({
         </label>
         <div className="edit-tags">
           <div className="d-flex justify-content-between">
-            <span className="admin-label">赋予标签（多选）</span>
+            <span className="admin-label">{t("Modal.EditGuest.Tags")}</span>
             <span className="admin-help">
-              已选 {draft.tagIds.length} 个标签
+              {t("Modal.EditGuest.SelectedTags", {
+                count: draft.tagIds.length,
+              })}
             </span>
           </div>
           <TagListingSelector
@@ -65,7 +71,7 @@ export function GuestEditModal({
         </div>
         <div className="form-grid">
           <label className="admin-label">
-            婚礼边
+            {t("Common.Side")}
             <select
               className="admin-input"
               value={draft.side}
@@ -76,12 +82,12 @@ export function GuestEditModal({
                 })
               }
             >
-              <option value="groom">男方</option>
-              <option value="bride">女方</option>
+              <option value="groom">{t("Common.Groom")}</option>
+              <option value="bride">{t("Common.Bride")}</option>
             </select>
           </label>
           <label className="admin-label">
-            身份关系
+            {t("Common.Relationship")}
             <select
               className="admin-input"
               required
@@ -91,11 +97,11 @@ export function GuestEditModal({
               }
             >
               <option value="" disabled>
-                请选择身份关系（标签）
+                {t("Admin.Guests.SelectRelationship")}
               </option>
               {legacy && (
                 <option value={guest.relationship}>
-                  {guest.relationship}（现有）
+                  {t("Common.Existing", { value: guest.relationship })}
                 </option>
               )}
               {relationships.map((name) => (
@@ -104,25 +110,25 @@ export function GuestEditModal({
             </select>
           </label>
           <label className="admin-label">
-            安排桌号
+            {t("Common.AssignTable")}
             <select
               className="admin-input"
               required
               value={draft.tableNo}
               onChange={(e) => setDraft({ ...draft, tableNo: e.target.value })}
             >
-              {state.tables.map((t) => (
-                <option key={t.id} value={t.tableNo}>
-                  {t.tableNo} 桌
+              {state.tables.map((item) => (
+                <option key={item.id} value={item.tableNo}>
+                  {t("Common.TableNumber", { table: item.tableNo })}
                 </option>
               ))}
             </select>
           </label>
           <label className="admin-label">
-            座位号（选填）
+            {t("Modal.EditGuest.Seat")}
             <input
               className="admin-input"
-              placeholder="如: 01"
+              placeholder={t("Modal.EditGuest.SeatPlaceholder")}
               value={draft.seatNo || ""}
               onChange={(e) => setDraft({ ...draft, seatNo: e.target.value })}
             />
@@ -134,17 +140,17 @@ export function GuestEditModal({
             className="admin-outline-button"
             onClick={onClose}
           >
-            取消
+            {t("Common.Cancel")}
           </button>
           <button
             type="submit"
             className="admin-primary-button"
             disabled={busy}
           >
-            保存修改
+            {t("Common.SaveChanges")}
           </button>
         </div>
-      </form>
+      </LocalizedForm>
     </Modal>
   );
 }

@@ -1,3 +1,5 @@
+import { LocalizedForm } from "./LocalizedForm";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useWedding } from "../hooks/useWedding";
 import { Modal } from "./Modal";
@@ -8,15 +10,15 @@ export function VoidAngpaoModal({
   recordId: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
+
   const { actions, run } = useWedding();
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <Modal title="确认作废此礼金记录？" onClose={onClose}>
-      <p className="admin-help">
-        财务记录无法直接物理删除。作废后该笔礼金将不计入总额，并保留审计记录。
-      </p>
-      <form
+    <Modal title={t("Modal.Void.Title")} onClose={onClose}>
+      <p className="admin-help">{t("Modal.Void.Help")}</p>
+      <LocalizedForm
         className="wedding-space-y-3"
         onSubmit={async (e) => {
           e.preventDefault();
@@ -25,7 +27,7 @@ export function VoidAngpaoModal({
           if (
             await run(
               () => actions.voidGift(recordId, reason),
-              "礼金记录已作废",
+              "Notifications.GiftVoided",
             )
           )
             onClose();
@@ -33,11 +35,11 @@ export function VoidAngpaoModal({
         }}
       >
         <label className="admin-label">
-          作废原因（必填）
+          {t("Modal.Void.Reason")}
           <input
             className="admin-input"
             required
-            placeholder="例如：金额登记错误 / 重复录入"
+            placeholder={t("Modal.Void.Placeholder")}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
@@ -48,13 +50,13 @@ export function VoidAngpaoModal({
             className="admin-outline-button"
             onClick={onClose}
           >
-            取消
+            {t("Common.Cancel")}
           </button>
           <button className="admin-danger-button" type="submit" disabled={busy}>
-            确认作废
+            {t("Modal.Void.Confirm")}
           </button>
         </div>
-      </form>
+      </LocalizedForm>
     </Modal>
   );
 }

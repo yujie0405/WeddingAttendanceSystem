@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,14 +8,20 @@ import {
   faTableCells,
 } from "@fortawesome/free-solid-svg-icons";
 const tabs = [
-  { to: "/admin/dashboard", label: "仪表盘", icon: faChartPie },
-  { to: "/admin/tag", label: "全局标签管理", icon: faTag },
-  { to: "/admin/add-guest", label: "新增/管理宾客", icon: faUser },
-  { to: "/admin/table-setting", label: "桌位设置", icon: faTableCells },
+  { to: "/admin/dashboard", label: "Nav.Dashboard" as const, icon: faChartPie },
+  { to: "/admin/tag", label: "Nav.Tags" as const, icon: faTag },
+  { to: "/admin/add-guest", label: "Nav.Guests" as const, icon: faUser },
+  {
+    to: "/admin/table-setting",
+    label: "Nav.Tables" as const,
+    icon: faTableCells,
+  },
 ];
 export function NavTag() {
+  const { t } = useTranslation();
+
   return (
-    <nav className="admin-nav" aria-label="后台导航">
+    <nav className="admin-nav" aria-label={t("Nav.AdminNavigation")}>
       {tabs.map((tab) => (
         <NavLink
           key={tab.to}
@@ -24,7 +31,7 @@ export function NavTag() {
             "admin-nav-link " + (isActive ? "active" : "")
           }
         >
-          <FontAwesomeIcon icon={tab.icon} /> {tab.label}
+          <FontAwesomeIcon icon={tab.icon} /> {t(tab.label)}
         </NavLink>
       ))}
     </nav>

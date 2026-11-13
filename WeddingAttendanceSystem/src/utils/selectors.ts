@@ -10,6 +10,8 @@ export const matchesGuest = (g: Guest, search: string) => {
       g.tableNo,
       `桌${g.tableNo}`,
       `桌 ${g.tableNo}`,
+      `table ${g.tableNo}`,
+      `table${g.tableNo}`,
     ].some((v) => v?.toLowerCase().includes(term))
   );
 };

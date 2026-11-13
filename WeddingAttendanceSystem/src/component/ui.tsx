@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import type { Guest, Tag } from "../types";
 export function AttendanceBadge({ guest }: { guest: Guest }) {
+  const { t } = useTranslation();
+
   return (
     <span
       className={
@@ -14,21 +17,23 @@ export function AttendanceBadge({ guest }: { guest: Guest }) {
       }
     >
       {!guest.isActive
-        ? "已停用"
+        ? t("Status.Inactive")
         : guest.status === "arrived"
-          ? `已签到 ${guest.checkInTime || ""}`
-          : "未签到"}
+          ? t("Status.Arrived", { time: guest.checkInTime || "" })
+          : t("Status.Pending")}
     </span>
   );
 }
 export function SideBadge({ side }: { side: Guest["side"] }) {
+  const { t } = useTranslation();
+
   return (
     <span
       className={
         "admin-badge admin-badge-" + (side === "groom" ? "blue" : "rose")
       }
     >
-      {side === "groom" ? "男方" : "女方"}
+      {side === "groom" ? t("Common.Groom") : t("Common.Bride")}
     </span>
   );
 }

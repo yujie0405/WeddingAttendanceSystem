@@ -1,3 +1,5 @@
+import { LocalizedForm } from "../../../component/LocalizedForm";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import type { Guest, GuestDraft } from "../../../types";
 import { useWedding } from "../../../hooks/useWedding";
@@ -22,6 +24,8 @@ const emptyDraft: GuestDraft = {
   tagIds: [],
 };
 export function Guests() {
+  const { t } = useTranslation();
+
   const { state, actions, run } = useWedding();
   const [draft, setDraft] = useState(emptyDraft);
   const [search, setSearch] = useState("");
@@ -30,14 +34,14 @@ export function Guests() {
   const filtered = state.guests.filter((g) => matchesGuest(g, search));
   const page = usePagination(filtered, 20);
   const edit = state.guests.find((g) => g.id === editId);
-  const table = state.tables.some((t) => t.tableNo === draft.tableNo)
+  const table = state.tables.some((item) => item.tableNo === draft.tableNo)
     ? draft.tableNo
     : state.tables[0]?.tableNo || "";
-  const relationships = [...new Set(state.tags.map((t) => t.name))];
+  const relationships = [...new Set(state.tags.map((item) => item.name))];
   const columns: ListingColumn<Guest>[] = [
     {
       key: "name",
-      title: "姓名 / 身份 / 家庭",
+      title: t("Admin.Guests.NameColumn"),
       render: (g) => (
         <>
           <strong>{g.name}</strong>
@@ -48,13 +52,13 @@ export function Guests() {
     },
     {
       key: "tags",
-      title: "婚礼边 / 标签",
+      title: t("Admin.Guests.TagColumn"),
       render: (g) => (
         <>
           <SideBadge side={g.side} />
           <div className="admin-tags">
             {g.tagIds.map((id) => {
-              const tag = state.tags.find((t) => t.id === id);
+              const tag = state.tags.find((item) => item.id === id);
               return tag ? <TagBadge key={id} tag={tag} /> : null;
             })}
           </div>
@@ -63,35 +67,39 @@ export function Guests() {
     },
     {
       key: "table",
-      title: "桌号 / 座位",
+      title: t("Admin.Guests.TableColumn"),
       render: (g) => (
         <>
-          {g.tableNo} 桌
-          {g.seatNo && <small className="admin-subtext">座位 {g.seatNo}</small>}
+          {t("Common.TableNumber", { table: g.tableNo })}
+          {g.seatNo && (
+            <small className="admin-subtext">
+              {t("Common.SeatNumber", { seat: g.seatNo })}
+            </small>
+          )}
         </>
       ),
     },
     {
       key: "status",
-      title: "签到状态",
+      title: t("Common.Status"),
       render: (g) => <AttendanceBadge guest={g} />,
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("Common.Actions"),
       render: (g) => (
         <button
           className="admin-outline-button"
           onClick={() => setEditId(g.id)}
         >
-          编辑
+          {t("Common.Edit")}
         </button>
       ),
     },
   ];
   return (
     <>
-      <form
+      <LocalizedForm
         className="wedding-space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
@@ -100,7 +108,7 @@ export function Guests() {
           if (
             await run(
               () => actions.addGuest({ ...draft, tableNo: table }),
-              "成功登记新宾客",
+              "Notifications.GuestAdded",
             )
           ) {
             setDraft(emptyDraft);
@@ -110,10 +118,10 @@ export function Guests() {
           setBusy(false);
         }}
       >
-        <h2 className="admin-section-title">新增 / 管理宾客</h2>
+        <h2 className="admin-section-title">{t("Admin.Guests.Title")}</h2>
         <div className="form-grid">
           <label className="admin-label">
-            姓名
+            {t("Common.Name")}
             <input
               className="admin-input"
               required
@@ -122,7 +130,7 @@ export function Guests() {
             />
           </label>
           <label className="admin-label">
-            身份关系
+            {t("Common.Relationship")}
             <select
               className="admin-input"
               required
@@ -137,8 +145,8 @@ export function Guests() {
             >
               <option value="" disabled>
                 {relationships.length
-                  ? "请选择身份关系（标签）"
-                  : "请先添加标签"}
+                  ? t("Admin.Guests.SelectRelationship")
+                  : t("Admin.Guests.AddTagsFirst")}
               </option>
               {relationships.map((name) => (
                 <option key={name}>{name}</option>
@@ -146,7 +154,7 @@ export function Guests() {
             </select>
           </label>
           <label className="admin-label">
-            婚礼边
+            {t("Common.Side")}
             <select
               className="admin-input"
               value={draft.side}
@@ -157,22 +165,24 @@ export function Guests() {
                 })
               }
             >
-              <option value="groom">男方</option>
-              <option value="bride">女方</option>
+              <option value="groom">{t("Common.Groom")}</option>
+              <option value="bride">{t("Common.Bride")}</option>
             </select>
           </label>
           <label className="admin-label">
-            安排桌号
+            {t("Common.AssignTable")}
             <select
               className="admin-input"
               required
               value={table}
               onChange={(e) => setDraft({ ...draft, tableNo: e.target.value })}
             >
-              {!state.tables.length && <option value="">请先添加桌位</option>}
-              {state.tables.map((t) => (
-                <option key={t.id} value={t.tableNo}>
-                  {t.tableNo} 桌
+              {!state.tables.length && (
+                <option value="">{t("Admin.Guests.AddTableFirst")}</option>
+              )}
+              {state.tables.map((item) => (
+                <option key={item.id} value={item.tableNo}>
+                  {t("Common.TableNumber", { table: item.tableNo })}
                 </option>
               ))}
             </select>
@@ -183,15 +193,18 @@ export function Guests() {
           type="submit"
           disabled={busy || !state.tables.length || !relationships.length}
         >
-          录入宾客
+          {t("Admin.Guests.Add")}
         </button>
-      </form>
+      </LocalizedForm>
       <section className="admin-section">
         <div className="admin-section-heading">
-          <h2 className="admin-section-title">宾客列表</h2>
+          <h2 className="admin-section-title">{t("Admin.Guests.ListTitle")}</h2>
           <span className="admin-help">
-            显示 {filtered.length ? page.start + 1 : 0}–
-            {page.start + page.items.length} / {filtered.length} 位宾客
+            {t("Admin.Guests.Range", {
+              start: filtered.length ? page.start + 1 : 0,
+              end: page.start + page.items.length,
+              total: filtered.length,
+            })}
           </span>
         </div>
         <SearchField
@@ -200,11 +213,11 @@ export function Guests() {
             setSearch(s);
             page.reset();
           }}
-          placeholder="搜索宾客 / 家庭 / 桌号"
+          placeholder={t("Admin.Guests.Search")}
         />
         <Listing
           mode="table"
-          label="宾客管理列表"
+          label={t("Admin.Guests.ListLabel")}
           items={page.items}
           getKey={(g) => g.id}
           columns={columns}

@@ -38,6 +38,23 @@ Bootstrap CSS is loaded once through the existing CDN in `index.html`. Icons use
 - `src/utils/`: pure formatting and selectors.
 - `src/styles/wedding.css`, `src/index.css`: migrated original styles and React component presentation.
 
+## Interface languages
+
+The application supports **中文 (Simplified Chinese)** and **English** using the installed `i18next` and `react-i18next` packages. Use the English/中文 control in the header, login page, data-recovery screen or an open dialog. The default is Chinese; the selection is saved separately under `wedding-language` and survives navigation, refresh and login/logout.
+
+Translations live in exactly two files:
+
+```text
+src/locales/CN.json   # Runtime language: zh-CN
+src/locales/EN.json   # Runtime language: en
+```
+
+Both files use matching nested keys grouped by page/feature, for example `Main.ArrivedPeople`, `Admin.Guests.Title`, `Modal.Gift.Amount`, and shared `Common`/`Nav` keys. Use `useTranslation()` and `t('Main.ArrivedPeople')` in React. Add each new key and matching interpolation parameters to both files; use `_one`/`_other` variants for English plural forms. Resource keys are typed through `src/i18n/i18next.d.ts`.
+
+`src/i18n/index.ts` initializes bundled JSON resources once before rendering, updates the HTML language/title, and persists the preference safely. Domain errors carry language-independent codes; notices and form validation render messages in the current language. Switching does not remount forms or change wedding records.
+
+Guest/family names, saved tag names, relationships, notes and void reasons stay in their original language. Only the interface and enum labels change. Currency remains RM with two decimal places, and stored timestamps are not rewritten.
+
 ## Routes
 
 | Route | Screen |

@@ -1,3 +1,8 @@
+import { AppError } from "../i18n/messages";
+import { useTranslation } from "react-i18next";
+import { errorMessage, translateMessage } from "../i18n/messages";
+import type { Message, MessageInput } from "../i18n/messages";
+import { LanguageSwitcher } from "../component/LanguageSwitcher";
 import {
   createContext,
   useEffect,
@@ -20,25 +25,26 @@ import {
 import { tableUsage } from "../utils/selectors";
 
 function validateGuest(s: WeddingState, draft: GuestDraft) {
-  if (!draft.name.trim()) throw new Error("请输入宾客姓名");
-  if (!s.tables.some((t) => t.tableNo === draft.tableNo))
-    throw new Error("请选择有效桌位");
+  if (!draft.name.trim()) throw new AppError("Errors.GuestNameRequired");
+  if (!s.tables.some((item) => item.tableNo === draft.tableNo))
+    throw new AppError("Errors.InvalidTable");
 }
 function makeActions(isAdmin: boolean, recordedBy: string) {
   const admin = () => {
-    if (!isAdmin) throw new Error("此操作需要管理员权限");
+    if (!isAdmin) throw new AppError("Errors.AdminRequired");
   };
   return {
     toggleCheckIn: (id: string) =>
       weddingStore.transact((s) => {
         const g = s.guests.find((g) => g.id === id && g.isActive);
-        if (!g) throw new Error("宾客不存在");
+        if (!g) throw new AppError("Errors.GuestMissing");
         g.status = g.status === "pending" ? "arrived" : "pending";
         g.checkInTime = g.status === "arrived" ? timeNow() : undefined;
       }),
     checkInFamily: (id: string) =>
       weddingStore.transact((s) => {
-        if (!s.groups.some((g) => g.id === id)) throw new Error("家庭不存在");
+        if (!s.groups.some((g) => g.id === id))
+          throw new AppError("Errors.FamilyMissing");
         const now = timeNow();
         s.guests.forEach((g) => {
           if (g.groupId === id && g.isActive && g.status === "pending") {
@@ -51,8 +57,8 @@ function makeActions(isAdmin: boolean, recordedBy: string) {
       weddingStore.transact((s) => {
         admin();
         validateGuest(s, draft);
-        if (!s.tags.some((t) => t.name === draft.relationship))
-          throw new Error("请选择已有标签作为身份关系");
+        if (!s.tags.some((item) => item.name === draft.relationship))
+          throw new AppError("Errors.RelationshipRequired");
         s.guests.unshift({
           ...draft,
           name: draft.name.trim(),
@@ -65,13 +71,13 @@ function makeActions(isAdmin: boolean, recordedBy: string) {
       weddingStore.transact((s) => {
         validateGuest(s, draft);
         const g = s.guests.find((g) => g.id === id);
-        if (!g) throw new Error("宾客不存在");
+        if (!g) throw new AppError("Errors.GuestMissing");
         Object.assign(g, draft, { name: draft.name.trim() });
       }),
     addTag: (name: string) =>
       weddingStore.transact((s) => {
         admin();
-        if (!name.trim()) throw new Error("请输入标签名称");
+        if (!name.trim()) throw new AppError("Errors.TagNameRequired");
         s.tags.push({
           id: newId("tag"),
           name: name.trim(),
@@ -81,18 +87,19 @@ function makeActions(isAdmin: boolean, recordedBy: string) {
     deleteTag: (id: string) =>
       weddingStore.transact((s) => {
         admin();
-        s.tags = s.tags.filter((t) => t.id !== id);
+        s.tags = s.tags.filter((item) => item.id !== id);
       }),
     addTable: (capacity: number) =>
       weddingStore.transact((s) => {
         admin();
         if (!Number.isSafeInteger(capacity) || capacity < 1)
-          throw new Error("容纳人数必须是正整数");
+          throw new AppError("Errors.CapacityInvalid");
         const next = Math.max(
           s.nextTableNumber,
-          ...s.tables.map((t) => Number(t.tableNo) + 1),
+          ...s.tables.map((item) => Number(item.tableNo) + 1),
         );
-        if (!Number.isSafeInteger(next + 1)) throw new Error("桌号已达到上限");
+        if (!Number.isSafeInteger(next + 1))
+          throw new AppError("Errors.TableLimit");
         s.tables.push({
           id: newId("table"),
           tableNo: String(next).padStart(2, "0"),
@@ -104,20 +111,20 @@ function makeActions(isAdmin: boolean, recordedBy: string) {
     deleteTable: (id: string) =>
       weddingStore.transact((s) => {
         admin();
-        const t = s.tables.find((t) => t.id === id);
-        if (!t) throw new Error("桌位不存在");
+        const t = s.tables.find((item) => item.id === id);
+        if (!t) throw new AppError("Errors.TableMissing");
         if (tableUsage(s, t.tableNo).blocked)
-          throw new Error("请先重新安排宾客或家庭桌位，再删除");
-        s.tables = s.tables.filter((t) => t.id !== id);
+          throw new AppError("Errors.TableAssigned");
+        s.tables = s.tables.filter((item) => item.id !== id);
       }),
     registerGift: (draft: GiftDraft) =>
       weddingStore.transact((s) => {
         if (!Number.isFinite(draft.amount) || draft.amount <= 0)
-          throw new Error("请输入正确的礼金金额");
+          throw new AppError("Errors.GiftAmountInvalid");
         const recipient = (
           draft.targetType === "individual" ? s.guests : s.groups
         ).find((r) => r.id === draft.targetId);
-        if (!recipient) throw new Error("礼金收录对象不存在");
+        if (!recipient) throw new AppError("Errors.RecipientMissing");
         s.angpaoRecords.unshift({
           id: newId("ap"),
           targetType: draft.targetType,
@@ -133,9 +140,9 @@ function makeActions(isAdmin: boolean, recordedBy: string) {
     voidGift: (id: string, reason: string) =>
       weddingStore.transact((s) => {
         admin();
-        if (!reason.trim()) throw new Error("请填写作废原因");
+        if (!reason.trim()) throw new AppError("Errors.VoidReasonRequired");
         const r = s.angpaoRecords.find((r) => r.id === id);
-        if (!r || r.isVoided) throw new Error("记录不存在或已经作废");
+        if (!r || r.isVoided) throw new AppError("Errors.GiftUnavailable");
         r.isVoided = true;
         r.voidReason = reason.trim();
       }),
@@ -148,35 +155,37 @@ function makeActions(isAdmin: boolean, recordedBy: string) {
 interface WeddingContextValue {
   state: WeddingState;
   actions: ReturnType<typeof makeActions>;
-  run: (task: () => Promise<unknown>, success: string) => Promise<boolean>;
+  run: (
+    task: () => Promise<unknown>,
+    success: MessageInput,
+  ) => Promise<boolean>;
 }
 export const WeddingContext = createContext<WeddingContextValue | null>(null);
 export function WeddingProvider({ children }: { children: ReactNode }) {
-  const [error, setError] = useState(() => {
+  const { t } = useTranslation();
+  const [error, setError] = useState<Message | undefined>(() => {
     try {
       weddingStore.getSnapshot();
-      return "";
+      return undefined;
     } catch (e) {
-      return e instanceof Error ? e.message : "无法读取保存的数据";
+      return errorMessage(e);
     }
   });
   const recover = (task: () => void) => {
     try {
       task();
-      setError("");
+      setError(undefined);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "数据无效");
+      setError(errorMessage(e));
     }
   };
   if (error)
     return (
       <main className="recovery wedding-max-w-4xl wedding-mx-auto wedding-p-6">
-        <h1>选择或恢复婚礼数据</h1>
-        <p role="alert">{error}</p>
-        <p>
-          不会删除原始数据。请选择要使用的数据来源，或导入已导出的完整 JSON
-          数据。
-        </p>
+        <LanguageSwitcher />
+        <h1>{t("DataTransfer.RecoveryTitle")}</h1>
+        <p role="alert">{translateMessage(t, error)}</p>
+        <p>{t("DataTransfer.RecoveryHelp")}</p>
         <div className="admin-row-actions">
           <button
             className="admin-outline-button"
@@ -184,7 +193,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
               recover(() => weddingStore.replace(legacySource("react")))
             }
           >
-            使用现有 React 数据
+            {t("DataTransfer.UseReact")}
           </button>
           <button
             className="admin-outline-button"
@@ -192,11 +201,11 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
               recover(() => weddingStore.replace(legacySource("template")))
             }
           >
-            使用模板数据
+            {t("DataTransfer.UseTemplate")}
           </button>
         </div>
         <label className="admin-label wedding-mt-3">
-          导入完整 JSON
+          {t("DataTransfer.ImportComplete")}
           <input
             type="file"
             accept=".json,application/json"
@@ -208,7 +217,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
                   .then((text) =>
                     recover(() => weddingStore.replace(JSON.parse(text))),
                   )
-                  .catch(() => setError("无法读取文件"));
+                  .catch(() => setError({ key: "Errors.FileRead" }));
             }}
           />
         </label>
@@ -217,12 +226,13 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   return <WeddingSession>{children}</WeddingSession>;
 }
 function WeddingSession({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const state = useSyncExternalStore(
     weddingStore.subscribe,
     weddingStore.getSnapshot,
   );
   const { user } = useAuth();
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<MessageInput>();
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const run: WeddingContextValue["run"] = async (task, success) => {
@@ -232,11 +242,11 @@ function WeddingSession({ children }: { children: ReactNode }) {
       await task();
     } catch (e) {
       ok = false;
-      message = e instanceof Error ? e.message : "操作失败";
+      message = errorMessage(e);
     }
     setNotice(message);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setNotice(""), 4000);
+    timer.current = setTimeout(() => setNotice(undefined), 4000);
     return ok;
   };
   return (
@@ -250,7 +260,7 @@ function WeddingSession({ children }: { children: ReactNode }) {
       {children}
       {notice && (
         <div role="status" className="wedding-toast">
-          {notice}
+          {translateMessage(t, notice)}
         </div>
       )}
     </WeddingContext.Provider>

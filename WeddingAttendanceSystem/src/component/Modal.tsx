@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -15,6 +17,8 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useTranslation();
+
   const id = useId();
   const element = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
@@ -76,9 +80,16 @@ export function Modal({
       >
         <div className="modal-heading">
           <h2 id={id}>{title}</h2>
-          <button type="button" aria-label="关闭" onClick={onClose}>
-            <FontAwesomeIcon icon={faXmark} />
-          </button>
+          <div className="modal-controls">
+            <LanguageSwitcher />
+            <button
+              type="button"
+              aria-label={t("Common.Close")}
+              onClick={onClose}
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          </div>
         </div>
         {children}
       </div>
