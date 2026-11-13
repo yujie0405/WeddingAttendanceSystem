@@ -62,7 +62,7 @@
 </a>
 </div>
 <div class="wedding-p-4 wedding-md-p-6 wedding-space-y-6">
-<div class="wedding-space-y-6">
+<div class="admin-summary-grid">
 <div class="wedding-bg-emerald-100 wedding-p-4 wedding-rounded-xl wedding-border wedding-border-emerald-100">
 <h3 class="wedding-text-xs wedding-font-bold wedding-text-emerald-800">全场出席进度 (Arrived / Total)</h3>
 <p class="wedding-text-lg wedding-font-extrabold wedding-text-emerald-900" data-field="attendance">2 / 8 人</p>
@@ -75,6 +75,17 @@
 <p class="wedding-text-11px wedding-text-amber-700" data-field="gift-count">共 2 笔有效礼金记录</p>
 </div>
 </div>
+
+<section class="admin-section" aria-labelledby="dashboard-guests-title">
+  <h2 id="dashboard-guests-title" class="admin-section-title"><i class="fa-solid fa-list" aria-hidden="true"></i> 宾客与礼金</h2>
+  <label class="admin-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span class="visually-hidden">搜索姓名、家庭或桌号</span><input id="dashboard-search" type="search" class="admin-input" placeholder="搜索姓名 / 家庭 / 桌号"></label>
+  <div class="admin-table-scroll" tabindex="0" role="region" aria-label="宾客个人礼金列表">
+    <table class="admin-table"><thead><tr><th scope="col">姓名</th><th scope="col">婚礼边</th><th scope="col">桌号</th><th scope="col">签到状态</th><th scope="col">个人礼金</th><th scope="col">操作</th></tr></thead><tbody id="dashboard-guest-list"></tbody></table>
+  </div>
+  <p id="dashboard-guests-empty" class="admin-empty" hidden>未找到匹配的宾客。</p>
+</section>
+<p class="admin-gift-breakdown" id="gift-breakdown" aria-live="polite"></p>
+
 </div>
 </div>
 </main>
@@ -94,6 +105,67 @@
 <div class="wedding-w-12 wedding-h-12 wedding-rounded-full wedding-bg-amber-700 wedding-text-white d-flex align-items-center justify-content-center wedding-mx-auto wedding-text-xl wedding-font-bold wedding-font-serif">囍</div>
 <h2 class="wedding-text-lg wedding-font-bold wedding-text-hex-2C2A29">婚礼宾客签到系统登录</h2>
 <button class="w-100 wedding-py-2-5 wedding-bg-amber-700 wedding-text-white wedding-rounded-xl wedding-font-bold wedding-hover-bg-amber-800 wedding-transition-colors" data-action="login">以管理员登录体验</button>
+</div>
+</div>
+</template>
+
+<template id="dashboard-guest-row">
+  <tr><td><strong data-field="name"></strong><small data-field="family" class="admin-subtext"></small></td><td><span data-field="side" class="admin-badge"></span></td><td data-field="table"></td><td><span data-field="status" class="admin-badge"></span></td><td data-field="amount" class="admin-money"></td><td><div class="admin-row-actions"><button type="button" class="admin-outline-button" data-action="admin-guest-history">个人明细</button><button type="button" class="admin-outline-button" data-action="admin-family-history" hidden>家庭礼金</button></div></td></tr>
+</template>
+<template id="history-record-valid">
+<div class="wedding-p-3 wedding-rounded-xl wedding-border wedding-bg-hex-FAF8F5 wedding-border-hex-E8E2D5" data-record="">
+<div class="d-flex align-items-center justify-content-between">
+<span class="wedding-font-bold wedding-text-hex-2C2A29" data-field="record-name">个人礼金 - 陈美玲</span>
+<button class="wedding-text-red-600 wedding-hover-underline wedding-font-semibold" data-action="void-record">作废</button>
+</div>
+<p class="wedding-text-xs wedding-text-hex-78716C wedding-mt-1" data-field="record-meta">登记人: 工作人员 阿杰 | 时间: 2026-11-06 18:16</p>
+<p class="wedding-text-xs wedding-text-amber-800 wedding-mt-1" data-field="record-notes">备注: 备注</p>
+</div>
+</template>
+<template id="history-record-voided">
+<div class="wedding-p-3 wedding-rounded-xl wedding-border wedding-bg-gray-50 wedding-border-gray-200 wedding-opacity-60" data-record="">
+<div class="d-flex align-items-center justify-content-between">
+<span class="wedding-font-bold wedding-text-hex-2C2A29" data-field="record-name">个人礼金 - 陈美玲</span>
+</div>
+<p class="wedding-text-xs wedding-text-hex-78716C wedding-mt-1" data-field="record-meta">登记人: 工作人员 阿杰 | 时间: 2026-11-06 18:16</p>
+<p class="wedding-text-xs wedding-text-amber-800 wedding-mt-1" data-field="record-notes">备注: 备注</p>
+<p class="wedding-text-xs wedding-text-red-600 wedding-font-bold wedding-mt-1" data-field="record-void-reason">【已作废】原因: 原因</p>
+</div>
+</template>
+<template id="history-modal-template">
+<div class="position-fixed wedding-inset-0 wedding-z-50 wedding-bg-black-60  d-flex align-items-center justify-content-center wedding-p-4" role="dialog" aria-modal="true" aria-label="【宾客姓名】礼金记录明细" tabindex="-1">
+<div class="wedding-bg-white wedding-rounded-2xl wedding-max-w-md w-100 wedding-p-5 wedding-space-y-4 wedding-border wedding-border-hex-E8E2D5 wedding-shadow-xl wedding-max-h-85vh wedding-overflow-y-auto">
+<div class="d-flex align-items-center justify-content-between wedding-border-b wedding-border-hex-F0EBE1 wedding-pb-3">
+<h3 class="wedding-text-base wedding-font-bold wedding-text-hex-2C2A29" data-field="history-title">【宾客姓名】礼金记录明细</h3>
+<button class="wedding-p-1 wedding-text-hex-A8A29E wedding-hover-text-hex-2C2A29" data-action="close-modal">
+<i class="fa-solid fa-xmark">
+</i>
+</button>
+</div>
+<div class="wedding-space-y-2 wedding-text-xs" data-field="history-records">
+</div>
+</div>
+</div>
+</template>
+<template id="void-modal-template">
+<div class="position-fixed wedding-inset-0 wedding-z-50 wedding-bg-black-60  d-flex align-items-center justify-content-center wedding-p-4" role="dialog" aria-modal="true" aria-label="确认作废此礼金记录？" tabindex="-1">
+<div class="wedding-bg-white wedding-rounded-2xl wedding-max-w-sm w-100 wedding-p-5 wedding-space-y-4 wedding-border wedding-border-hex-E8E2D5 wedding-shadow-xl">
+<div class="d-flex align-items-center wedding-gap-3 wedding-text-red-600">
+<div class="wedding-p-2 wedding-bg-red-100 wedding-rounded-full">
+<i class="fa-solid fa-triangle-exclamation">
+</i>
+</div>
+<h3 class="wedding-text-base wedding-font-bold wedding-text-hex-2C2A29">确认作废此礼金记录？</h3>
+</div>
+<p class="wedding-text-xs wedding-text-hex-78716C wedding-leading-relaxed">财务记录无法直接物理删除。作废后该笔礼金将不计入总额，并生成审计留痕。</p>
+<div>
+<label class="d-block wedding-text-xs wedding-font-semibold wedding-text-hex-44403C wedding-mb-1">作废原因 (必填)</label>
+<input type="text" placeholder="例如：金额登记错误 / 重复录入" class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-text-xs wedding-focus-outline-none wedding-focus-border-amber-600" value="" name="voidReason" required="">
+</div>
+<div class="d-flex align-items-center wedding-gap-2 wedding-pt-2">
+<button class="wedding-flex-1 wedding-py-2-5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-text-xs wedding-font-medium wedding-text-hex-57534E wedding-hover-bg-hex-F5F2EA" data-action="close-modal">取消</button>
+<button class="wedding-flex-1 wedding-py-2-5 wedding-bg-red-600 wedding-hover-bg-red-700 wedding-text-white wedding-rounded-xl wedding-text-xs wedding-font-medium " data-action="confirm-void">确认作废</button>
+</div>
 </div>
 </div>
 </template>

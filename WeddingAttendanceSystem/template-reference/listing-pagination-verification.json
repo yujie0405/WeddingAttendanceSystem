@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "Guests: 20/20/1, previous/next boundaries, search resets and empty results",
+    "Tag-sourced relationship dropdown, legacy edit preservation, creation and editing",
+    "New tags become relationship options",
+    "Tables: 10/10/1, deletion clamps page, add opens last page and preserves numbering",
+    "Public listing displays individual guests directly",
+    "Guest-only dashboard retains family gift access and correct totals",
+    "Family check-in preserved through individual guest actions",
+    "Mobile pages fit viewport",
+    "Direct HTML file opening and tag-based creation"
+  ],
+  "errors": []
+}

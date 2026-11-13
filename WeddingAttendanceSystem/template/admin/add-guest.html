@@ -63,7 +63,7 @@
 </div>
 <div class="wedding-p-4 wedding-md-p-6 wedding-space-y-6">
 <form class="wedding-space-y-4 wedding-text-xs" id="add-guest-form">
-<h3 class="wedding-font-bold wedding-text-sm wedding-text-hex-2C2A29">新增单个宾客</h3>
+<h3 class="wedding-font-bold wedding-text-sm wedding-text-hex-2C2A29">新增 / 管理宾客</h3>
 <div class="wedding-grid wedding-grid-cols-2 wedding-gap-2">
 <div>
 <label class="d-block wedding-font-semibold wedding-mb-1" for="add-guest-field-0">姓名</label>
@@ -71,7 +71,7 @@
 </div>
 <div>
 <label class="d-block wedding-font-semibold wedding-mb-1" for="add-guest-field-1">身份关系</label>
-<input type="text" placeholder="如: 同事" class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl" value="" name="relationship" id="add-guest-field-1">
+<select class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl" name="relationship" id="add-guest-field-1" required><option value="">请选择身份关系（标签）</option></select>
 </div>
 </div>
 <div class="wedding-grid wedding-grid-cols-2 wedding-gap-2">
@@ -96,6 +96,20 @@
 </div>
 <button type="submit" class="w-100 wedding-py-2-5 wedding-bg-amber-700 wedding-text-white wedding-rounded-xl wedding-font-bold wedding-hover-bg-amber-800">录入宾客</button>
 </form>
+
+<section class="admin-section" aria-labelledby="admin-guests-title">
+  <div class="admin-section-heading"><h2 id="admin-guests-title" class="admin-section-title"><i class="fa-solid fa-users" aria-hidden="true"></i> 宾客列表</h2><span class="admin-help" id="admin-guest-count" aria-live="polite"></span></div>
+  <label class="admin-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span class="visually-hidden">搜索宾客、家庭或桌号</span><input id="admin-guest-search" type="search" class="admin-input" placeholder="搜索宾客 / 家庭 / 桌号"></label>
+  <div class="admin-table-scroll" tabindex="0" role="region" aria-label="宾客管理列表">
+    <table class="admin-table"><thead><tr><th scope="col">姓名 / 身份 / 家庭</th><th scope="col">婚礼边 / 标签</th><th scope="col">桌号 / 座位</th><th scope="col">签到状态</th><th scope="col">操作</th></tr></thead><tbody id="admin-guest-list"></tbody></table>
+  </div>
+  <nav class="admin-pagination" id="guests-pagination" aria-label="宾客列表分页"><button type="button" class="admin-outline-button" data-action="page-previous" data-list="guests">上一页</button><span data-page-info aria-live="polite"></span><button type="button" class="admin-outline-button" data-action="page-next" data-list="guests">下一页</button></nav>
+  <p id="admin-guests-empty" class="admin-empty" hidden>未找到匹配的宾客。</p>
+</section>
+<template id="admin-guest-row">
+  <tr data-guest-card><td><strong data-field="name"></strong><small class="admin-subtext" data-field="relationship"></small><small class="admin-subtext" data-field="family"></small></td><td><span data-field="side" class="admin-badge"></span><div data-field="tags" class="admin-tags"></div></td><td><span data-field="table"></span><small class="admin-subtext" data-field="seat"></small></td><td><span data-field="status" class="admin-badge"></span></td><td><button type="button" class="admin-outline-button" data-action="edit-guest"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> 编辑</button></td></tr>
+</template>
+
 </div>
 </div>
 </main>
@@ -115,6 +129,74 @@
 <div class="wedding-w-12 wedding-h-12 wedding-rounded-full wedding-bg-amber-700 wedding-text-white d-flex align-items-center justify-content-center wedding-mx-auto wedding-text-xl wedding-font-bold wedding-font-serif">囍</div>
 <h2 class="wedding-text-lg wedding-font-bold wedding-text-hex-2C2A29">婚礼宾客签到系统登录</h2>
 <button class="w-100 wedding-py-2-5 wedding-bg-amber-700 wedding-text-white wedding-rounded-xl wedding-font-bold wedding-hover-bg-amber-800 wedding-transition-colors" data-action="login">以管理员登录体验</button>
+</div>
+</div>
+</template>
+<template id="edit-tag-template">
+<button type="button" class="wedding-px-2-5 wedding-py-1 wedding-rounded-lg wedding-text-xs wedding-font-medium wedding-border wedding-transition-all d-flex align-items-center wedding-gap-1 wedding-bg-amber-700 wedding-text-white wedding-border-amber-800 " data-action="toggle-edit-tag">
+<i class="fa-solid fa-check">
+</i>
+<span>VIP</span>
+</button>
+</template>
+<template id="edit-modal-template">
+<div class="position-fixed wedding-inset-0 wedding-z-50 wedding-bg-black-60  d-flex align-items-center justify-content-center wedding-p-4" role="dialog" aria-modal="true" aria-label="编辑宾客资料与标签" tabindex="-1">
+<div class="wedding-bg-white wedding-rounded-2xl wedding-max-w-md w-100 wedding-p-5 wedding-space-y-4 wedding-border wedding-border-hex-E8E2D5 wedding-shadow-2xl wedding-max-h-90vh wedding-overflow-y-auto">
+<div class="d-flex align-items-center justify-content-between wedding-border-b wedding-border-hex-F0EBE1 wedding-pb-3">
+<h3 class="wedding-text-base wedding-font-bold wedding-text-hex-2C2A29">编辑宾客资料与标签</h3>
+<button class="wedding-p-1 wedding-text-hex-A8A29E wedding-hover-text-hex-2C2A29" data-action="close-modal">
+<i class="fa-solid fa-xmark">
+</i>
+</button>
+</div>
+<form class="wedding-space-y-3 wedding-text-xs" id="edit-guest-form">
+<div>
+<label class="d-block wedding-font-semibold wedding-text-hex-44403C wedding-mb-1">宾客姓名</label>
+<input type="text" required="" class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-focus-outline-none wedding-focus-border-amber-600 wedding-text-sm" value="宾客姓名" name="name">
+</div>
+<div class="wedding-bg-hex-FAF7F2 wedding-p-3 wedding-rounded-xl wedding-border wedding-border-hex-E8E2D5">
+<label class="d-block wedding-font-bold wedding-text-hex-44403C wedding-mb-1-5 d-flex align-items-center justify-content-between">
+<span>赋予标签 (多选 Listing)</span>
+<span class="wedding-text-10px wedding-text-hex-78716C" data-field="selected-tag-count">已选 1 个标签</span>
+</label>
+<div class="d-flex flex-wrap wedding-gap-1-5" data-field="edit-tag-list">
+</div>
+</div>
+<div class="wedding-grid wedding-grid-cols-2 wedding-gap-2">
+<div>
+<label class="d-block wedding-font-semibold wedding-text-hex-44403C wedding-mb-1">婚礼边 (女方/男方)</label>
+<select class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-focus-outline-none wedding-focus-border-amber-600 wedding-text-sm" name="side">
+<option value="GROOM" selected="">男方 (Groom)</option>
+<option value="BRIDE">女方 (Bride)</option>
+</select>
+</div>
+<div>
+<label class="d-block wedding-font-semibold wedding-text-hex-44403C wedding-mb-1">身份关系</label>
+<select class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-focus-outline-none wedding-focus-border-amber-600 wedding-text-sm" name="relationship" required><option value="">请选择身份关系（标签）</option></select>
+</div>
+</div>
+<div class="wedding-grid wedding-grid-cols-2 wedding-gap-2">
+<div>
+<label class="d-block wedding-font-semibold wedding-text-hex-44403C wedding-mb-1">安排桌号</label>
+<select class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-focus-outline-none wedding-focus-border-amber-600 wedding-text-sm" name="tableNumber">
+<option value="01">01 桌</option>
+<option value="02">02 桌</option>
+<option value="03" selected="">03 桌</option>
+<option value="04">04 桌</option>
+<option value="05">05 桌</option>
+<option value="06">06 桌</option>
+</select>
+</div>
+<div>
+<label class="d-block wedding-font-semibold wedding-text-hex-44403C wedding-mb-1">座位号 (选填)</label>
+<input type="text" placeholder="如: 01" class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-focus-outline-none wedding-focus-border-amber-600 wedding-text-sm" value="01" name="seatNumber">
+</div>
+</div>
+<div class="d-flex align-items-center wedding-gap-2 wedding-pt-2">
+<button type="button" class="wedding-flex-1 wedding-py-2-5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl wedding-font-medium wedding-text-hex-57534E" data-action="close-modal">取消</button>
+<button type="submit" class="wedding-flex-1 wedding-py-2-5 wedding-bg-amber-700 wedding-hover-bg-amber-800 wedding-text-white wedding-rounded-xl wedding-font-bold ">保存修改</button>
+</div>
+</form>
 </div>
 </div>
 </template>

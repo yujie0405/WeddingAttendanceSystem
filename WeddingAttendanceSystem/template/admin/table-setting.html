@@ -62,47 +62,19 @@
 </a>
 </div>
 <div class="wedding-p-4 wedding-md-p-6 wedding-space-y-6">
-<div class="wedding-space-y-3 wedding-text-xs">
-<h3 class="wedding-font-bold wedding-text-sm wedding-text-hex-2C2A29">桌位与容纳人数设置</h3>
-<div class="wedding-grid wedding-grid-cols-1 wedding-md-grid-cols-2 wedding-gap-3" id="table-list">
-<div class="wedding-p-3 wedding-border wedding-rounded-xl wedding-bg-hex-FAF8F5 d-flex align-items-center justify-content-between">
-<div>
-<span class="wedding-font-extrabold wedding-text-base wedding-text-hex-2C2A29">01 桌</span>
-<span class="wedding-text-xs wedding-text-hex-78716C wedding-ml-2">(容量 10 人)</span>
-</div>
-</div>
-<div class="wedding-p-3 wedding-border wedding-rounded-xl wedding-bg-hex-FAF8F5 d-flex align-items-center justify-content-between">
-<div>
-<span class="wedding-font-extrabold wedding-text-base wedding-text-hex-2C2A29">02 桌</span>
-<span class="wedding-text-xs wedding-text-hex-78716C wedding-ml-2">(容量 10 人)</span>
-</div>
-</div>
-<div class="wedding-p-3 wedding-border wedding-rounded-xl wedding-bg-hex-FAF8F5 d-flex align-items-center justify-content-between">
-<div>
-<span class="wedding-font-extrabold wedding-text-base wedding-text-hex-2C2A29">03 桌</span>
-<span class="wedding-text-xs wedding-text-hex-78716C wedding-ml-2">(容量 10 人)</span>
-</div>
-</div>
-<div class="wedding-p-3 wedding-border wedding-rounded-xl wedding-bg-hex-FAF8F5 d-flex align-items-center justify-content-between">
-<div>
-<span class="wedding-font-extrabold wedding-text-base wedding-text-hex-2C2A29">04 桌</span>
-<span class="wedding-text-xs wedding-text-hex-78716C wedding-ml-2">(容量 10 人)</span>
-</div>
-</div>
-<div class="wedding-p-3 wedding-border wedding-rounded-xl wedding-bg-hex-FAF8F5 d-flex align-items-center justify-content-between">
-<div>
-<span class="wedding-font-extrabold wedding-text-base wedding-text-hex-2C2A29">05 桌</span>
-<span class="wedding-text-xs wedding-text-hex-78716C wedding-ml-2">(容量 10 人)</span>
-</div>
-</div>
-<div class="wedding-p-3 wedding-border wedding-rounded-xl wedding-bg-hex-FAF8F5 d-flex align-items-center justify-content-between">
-<div>
-<span class="wedding-font-extrabold wedding-text-base wedding-text-hex-2C2A29">06 桌</span>
-<span class="wedding-text-xs wedding-text-hex-78716C wedding-ml-2">(容量 10 人)</span>
-</div>
-</div>
-</div>
-</div>
+
+<section class="wedding-space-y-4" aria-labelledby="table-settings-title">
+  <h2 id="table-settings-title" class="admin-section-title"><i class="fa-solid fa-table-cells" aria-hidden="true"></i> 桌位设置</h2>
+  <form id="add-table-form" class="admin-table-form">
+    <div><label for="next-table-number" class="admin-label">下一桌号</label><input id="next-table-number" class="admin-input" value="07（自动）" readonly aria-describedby="table-number-help"></div>
+    <div><label for="table-capacity" class="admin-label">容纳人数</label><input id="table-capacity" name="capacity" class="admin-input" type="number" min="1" step="1" value="10" required inputmode="numeric"></div>
+    <button type="submit" class="admin-primary-button"><i class="fa-solid fa-plus" aria-hidden="true"></i> 添加桌位</button>
+  </form>
+  <p id="table-number-help" class="admin-help">编号自动递增；删除不会改变其他桌号，也不会自动重用已删除的编号。</p>
+  <div class="admin-table-grid" id="table-list"></div>
+  <nav class="admin-pagination" id="tables-pagination" aria-label="桌位列表分页"><button type="button" class="admin-outline-button" data-action="page-previous" data-list="tables">上一页</button><span data-page-info aria-live="polite"></span><button type="button" class="admin-outline-button" data-action="page-next" data-list="tables">下一页</button></nav>
+  <p id="tables-empty" class="admin-empty" hidden>暂无桌位，请先添加桌位。</p>
+</section>
 </div>
 </div>
 </main>
@@ -125,14 +97,14 @@
 </div>
 </div>
 </template>
+
 <template id="table-row-template">
-<div class="wedding-p-3 wedding-border wedding-rounded-xl wedding-bg-hex-FAF8F5 d-flex align-items-center justify-content-between">
-<div>
-<span class="wedding-font-extrabold wedding-text-base wedding-text-hex-2C2A29">01 桌</span>
-<span class="wedding-text-xs wedding-text-hex-78716C wedding-ml-2">(容量 10 人)</span>
-</div>
-</div>
+  <article class="admin-table-card">
+    <div><h3 class="admin-table-number"><i class="fa-solid fa-chair" aria-hidden="true"></i> <span data-field="number"></span></h3><p data-field="capacity" class="admin-subtext"></p><p data-field="assigned" class="admin-subtext"></p></div>
+    <div class="admin-table-actions"><button type="button" data-action="delete-table" class="admin-danger-button"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> 删除</button><p data-field="delete-help" class="admin-help"></p></div>
+  </article>
 </template>
+
 <script src="../wedding.js" defer>
 </script>
 </body>

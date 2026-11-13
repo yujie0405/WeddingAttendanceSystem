@@ -1,0 +1,17 @@
+﻿{
+  "checks": [
+    "Guest/family totals are separate, correct, and not double-counted",
+    "Dashboard search, typed gift history, void validation and live totals",
+    "Guest search, in-place creation/editing/tags preserve IDs, families and gifts",
+    "Capacity validation, automatic numbering, reload persistence, confirmation, no reuse",
+    "Assigned table deletion blocked in both UI and handler",
+    "New table choices and occupancy update between pages",
+    "Two-tab table updates keep unique, increasing numbers",
+    "Check-in and gift regression, cross-page totals and admin-only amounts",
+    "Tag creation and logout/login regression",
+    "Existing data migration, family-only protection, three-digit numbering",
+    "Direct file:// add-table, guest assignment, navigation and refresh",
+    "Desktop/mobile: all admin pages render without document overflow"
+  ],
+  "errors": []
+}

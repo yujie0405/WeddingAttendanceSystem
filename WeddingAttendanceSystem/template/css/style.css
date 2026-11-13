@@ -1224,3 +1224,62 @@ a.wedding-text-amber-900:hover { color: #78350f; }
 a.wedding-text-hex-78716C:hover { color: #78716c; }
 a.wedding-text-hex-57534E:hover { color: #57534e; }
 
+/* Admin guest, angpau and table management. */
+.admin-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.admin-section { min-width: 0; border: 1px solid var(--wedding-border); border-radius: 1rem; padding: 1rem; background: #fff; }
+.admin-section-title { margin: 0; color: var(--wedding-text); font-size: 1rem; font-weight: 700; line-height: 1.5; }
+.admin-section-title > i { margin-right: .375rem; color: var(--wedding-primary); }
+.admin-section-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.admin-search { display: flex; align-items: center; gap: .5rem; margin: .875rem 0; border: 1px solid #d6cec2; border-radius: .75rem; padding-left: .75rem; background: #faf8f5; color: #78716c; }
+.admin-search .admin-input { border: 0; background: transparent; min-width: 0; }
+.admin-search:focus-within { outline: 2px solid #d97706; outline-offset: 2px; }
+.admin-input { width: 100%; min-width: 0; border: 1px solid #d6cec2; border-radius: .75rem; background: #faf8f5; padding: .625rem .75rem; color: var(--wedding-text); font-size: .8125rem; line-height: 1.5; }
+.admin-input:focus-visible { outline: 2px solid #d97706; outline-offset: 2px; }
+.admin-search .admin-input:focus { outline: none; }
+.admin-input[readonly] { background: #f5f2ea; color: #57534e; }
+.admin-label { display: block; font-size: .75rem; font-weight: 600; margin-bottom: .375rem; }
+.admin-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid #e8e2d5; border-radius: .75rem; }
+.admin-table { width: 100%; min-width: 520px; border-collapse: collapse; text-align: left; font-size: .75rem; line-height: 1.5; }
+.admin-table th { background: #faf7f2; color: #57534e; font-weight: 700; white-space: nowrap; }
+.admin-table th, .admin-table td { padding: .75rem; border-bottom: 1px solid #f0ebe1; vertical-align: middle; }
+.admin-table tbody tr:last-child td { border-bottom: 0; }
+.admin-table tbody tr:hover { background: #fffdf9; }
+.admin-subtext { display: block; margin-top: .25rem; font-size: .6875rem; line-height: 1.5; color: #78716c; }
+.admin-money { color: #78350f; white-space: nowrap; font-weight: 600; }
+.admin-muted { color: #a8a29e; font-weight: 400; }
+.admin-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: .125rem .5rem; font-size: .6875rem; font-weight: 600; white-space: nowrap; }
+.admin-badge-blue { background: #dbeafe; color: #1e40af; }
+.admin-badge-rose { background: #ffe4e6; color: #9f1239; }
+.admin-badge-arrived { background: #d1fae5; color: #065f46; }
+.admin-badge-pending { background: #fef3c7; color: #92400e; }
+.admin-badge-inactive { background: #f5f5f4; color: #78716c; }
+.admin-tags { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .375rem; }
+.admin-tag { border: 1px solid; border-radius: .375rem; padding: .0625rem .375rem; font-size: .625rem; }
+.admin-outline-button, .admin-danger-button, .admin-primary-button { display: inline-flex; align-items: center; justify-content: center; gap: .375rem; border: 1px solid; border-radius: .5rem; padding: .375rem .625rem; font-size: .75rem; font-weight: 600; line-height: 1.5; white-space: nowrap; transition: background-color .15s, color .15s; }
+.admin-outline-button { color: #92400e; border-color: #d6b790; background: #fff; }
+.admin-outline-button:hover { background: #fffbeb; }
+.admin-primary-button { background: #b45309; border-color: #b45309; color: #fff; padding: .625rem 1rem; }
+.admin-primary-button:hover { background: #92400e; }
+.admin-danger-button { background: #fff; border-color: #fca5a5; color: #b91c1c; }
+.admin-danger-button:hover:not(:disabled) { background: #fef2f2; }
+.admin-danger-button:disabled { color: #a8a29e; background: #f5f5f4; border-color: #e7e5e4; cursor: not-allowed; }
+.admin-outline-button:focus-visible, .admin-primary-button:focus-visible, .admin-danger-button:focus-visible { outline: 2px solid #d97706; outline-offset: 3px; }
+.admin-help { margin-top: .625rem; color: #78716c; font-size: .6875rem; line-height: 1.6; }
+.admin-empty { padding: 1.25rem .5rem; color: #78716c; font-size: .8125rem; text-align: center; }
+.admin-gift-breakdown { padding: .75rem 1rem; border-radius: .75rem; background: #fffbeb; color: #92400e; font-size: .8125rem; font-weight: 600; line-height: 1.8; }
+.admin-table-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; padding: 1rem; border: 1px solid var(--wedding-border); border-radius: 1rem; }
+.admin-table-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.admin-table-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--wedding-border); border-radius: .875rem; background: #fffdf9; }
+.admin-table-number { font-size: 1rem; font-weight: 700; }
+.admin-table-number > i { color: #b45309; }
+.admin-table-actions { max-width: 9rem; text-align: right; }
+.admin-row-actions { display: flex; flex-wrap: wrap; gap: .375rem; }
+.admin-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; font-size: .75rem; color: #78716c; }
+.admin-pagination button:disabled { color: #a8a29e; border-color: #e7e5e4; background: #f5f5f4; cursor: not-allowed; }
+@media (max-width: 575px) {
+  .admin-summary-grid, .admin-table-grid { grid-template-columns: 1fr; }
+  .admin-table-form { grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .admin-table-form > button { grid-column: 1 / -1; }
+  .admin-section { padding: .75rem; }
+}
+
