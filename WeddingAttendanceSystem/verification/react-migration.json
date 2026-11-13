@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Fresh template graph migrates once; StrictMode/refresh preserves records",
+    "Individual and family check-in",
+    "Search, side, table and tag filters",
+    "Gift registration, decimal amounts, history without public amount display",
+    "Dashboard totals, separate family access, voiding updates amounts",
+    "Guest creation, relationship tags, editing and tag selection",
+    "Shared tags update relationship options across routes",
+    "Capacity, protected deletion, confirmation and monotonically increasing table numbers",
+    "Cross-tab canonical storage updates",
+    "Editing preserves a concurrent check-in from another tab",
+    "Logout persistence and staff/admin direct-route guards",
+    "Direct navigation and refresh for all routes",
+    "41 guests/21 tables: 20/20/1 and 10/10/1, search reset, legacy edit, deletion clamp",
+    "Template migration keeps original keys untouched",
+    "Legacy React records migrate without substituting template IDs",
+    "Conflicting datasets require explicit selection before canonical write",
+    "Validated JSON import and pre-import recovery backup",
+    "Unsupported imported schema is rejected without replacing data",
+    "Desktop/mobile routes render without horizontal document overflow"
+  ],
+  "errors": []
+}

@@ -1,0 +1,1621 @@
+/* Original wedding palette and dimensions, with Bootstrap layout utilities. */
+:root {
+  --wedding-bg: #fdfbf7;
+  --wedding-text: #2c2a29;
+  --wedding-primary: #b45309;
+  --wedding-border: #e8e2d5;
+}
+*,
+::before,
+::after {
+  --wedding-border-spacing-x: 0;
+  --wedding-border-spacing-y: 0;
+  --wedding-translate-x: 0;
+  --wedding-translate-y: 0;
+  --wedding-rotate: 0;
+  --wedding-skew-x: 0;
+  --wedding-skew-y: 0;
+  --wedding-scale-x: 1;
+  --wedding-scale-y: 1;
+  --wedding-pan-x:  ;
+  --wedding-pan-y:  ;
+  --wedding-pinch-zoom:  ;
+  --wedding-scroll-snap-strictness: proximity;
+  --wedding-gradient-from-position:  ;
+  --wedding-gradient-via-position:  ;
+  --wedding-gradient-to-position:  ;
+  --wedding-ordinal:  ;
+  --wedding-slashed-zero:  ;
+  --wedding-numeric-figure:  ;
+  --wedding-numeric-spacing:  ;
+  --wedding-numeric-fraction:  ;
+  --wedding-ring-inset:  ;
+  --wedding-ring-offset-width: 0px;
+  --wedding-ring-offset-color: #fff;
+  --wedding-ring-color: rgb(59 130 246 / 0.5);
+  --wedding-ring-offset-shadow: 0 0 #0000;
+  --wedding-ring-shadow: 0 0 #0000;
+  --wedding-shadow: 0 0 #0000;
+  --wedding-shadow-colored: 0 0 #0000;
+  --wedding-blur:  ;
+  --wedding-brightness:  ;
+  --wedding-contrast:  ;
+  --wedding-grayscale:  ;
+  --wedding-hue-rotate:  ;
+  --wedding-invert:  ;
+  --wedding-saturate:  ;
+  --wedding-sepia:  ;
+  --wedding-drop-shadow:  ;
+  --wedding-backdrop-blur:  ;
+  --wedding-backdrop-brightness:  ;
+  --wedding-backdrop-contrast:  ;
+  --wedding-backdrop-grayscale:  ;
+  --wedding-backdrop-hue-rotate:  ;
+  --wedding-backdrop-invert:  ;
+  --wedding-backdrop-opacity:  ;
+  --wedding-backdrop-saturate:  ;
+  --wedding-backdrop-sepia:  ;
+  --wedding-contain-size:  ;
+  --wedding-contain-layout:  ;
+  --wedding-contain-paint:  ;
+  --wedding-contain-style:  ;
+}
+
+::backdrop {
+  --wedding-border-spacing-x: 0;
+  --wedding-border-spacing-y: 0;
+  --wedding-translate-x: 0;
+  --wedding-translate-y: 0;
+  --wedding-rotate: 0;
+  --wedding-skew-x: 0;
+  --wedding-skew-y: 0;
+  --wedding-scale-x: 1;
+  --wedding-scale-y: 1;
+  --wedding-pan-x:  ;
+  --wedding-pan-y:  ;
+  --wedding-pinch-zoom:  ;
+  --wedding-scroll-snap-strictness: proximity;
+  --wedding-gradient-from-position:  ;
+  --wedding-gradient-via-position:  ;
+  --wedding-gradient-to-position:  ;
+  --wedding-ordinal:  ;
+  --wedding-slashed-zero:  ;
+  --wedding-numeric-figure:  ;
+  --wedding-numeric-spacing:  ;
+  --wedding-numeric-fraction:  ;
+  --wedding-ring-inset:  ;
+  --wedding-ring-offset-width: 0px;
+  --wedding-ring-offset-color: #fff;
+  --wedding-ring-color: rgb(59 130 246 / 0.5);
+  --wedding-ring-offset-shadow: 0 0 #0000;
+  --wedding-ring-shadow: 0 0 #0000;
+  --wedding-shadow: 0 0 #0000;
+  --wedding-shadow-colored: 0 0 #0000;
+  --wedding-blur:  ;
+  --wedding-brightness:  ;
+  --wedding-contrast:  ;
+  --wedding-grayscale:  ;
+  --wedding-hue-rotate:  ;
+  --wedding-invert:  ;
+  --wedding-saturate:  ;
+  --wedding-sepia:  ;
+  --wedding-drop-shadow:  ;
+  --wedding-backdrop-blur:  ;
+  --wedding-backdrop-brightness:  ;
+  --wedding-backdrop-contrast:  ;
+  --wedding-backdrop-grayscale:  ;
+  --wedding-backdrop-hue-rotate:  ;
+  --wedding-backdrop-invert:  ;
+  --wedding-backdrop-opacity:  ;
+  --wedding-backdrop-saturate:  ;
+  --wedding-backdrop-sepia:  ;
+  --wedding-contain-size:  ;
+  --wedding-contain-layout:  ;
+  --wedding-contain-paint:  ;
+  --wedding-contain-style:  ;
+}
+
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: #e5e7eb;
+}
+
+::before,
+::after {
+  --wedding-content: "";
+}
+
+html,
+:host {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+  font-family:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  line-height: inherit;
+}
+
+hr {
+  height: 0;
+  color: inherit;
+  border-top-width: 1px;
+}
+
+abbr:where([title]) {
+  text-decoration: underline dotted;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  font-size: 1em;
+}
+
+small {
+  font-size: 80%;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+table {
+  text-indent: 0;
+  border-color: inherit;
+  border-collapse: collapse;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+button,
+select {
+  text-transform: none;
+}
+
+button,
+input:where([type="button"]),
+input:where([type="reset"]),
+input:where([type="submit"]) {
+  -webkit-appearance: button;
+  background-color: transparent;
+  background-image: none;
+}
+
+:-moz-focusring {
+  outline: auto;
+}
+
+:-moz-ui-invalid {
+  box-shadow: none;
+}
+
+progress {
+  vertical-align: baseline;
+}
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+[type="search"] {
+  -webkit-appearance: textfield;
+  outline-offset: -2px;
+}
+
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+::-webkit-file-upload-button {
+  -webkit-appearance: button;
+  font: inherit;
+}
+
+summary {
+  display: list-item;
+}
+
+blockquote,
+dl,
+dd,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+hr,
+figure,
+p,
+pre {
+  margin: 0;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+ol,
+ul,
+menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+dialog {
+  padding: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 1;
+  color: #9ca3af;
+}
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+:disabled {
+  cursor: default;
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+[hidden]:where(:not([hidden="until-found"])) {
+  display: none;
+}
+.wedding-pointer-events-none {
+  pointer-events: none;
+}
+.wedding-inset-0 {
+  inset: 0px;
+}
+.wedding-left-1-2 {
+  left: 50%;
+}
+.wedding-left-3-5 {
+  left: 0.875rem;
+}
+.wedding-right-3 {
+  right: 0.75rem;
+}
+.wedding-top-0 {
+  top: 0px;
+}
+.wedding-top-1-2 {
+  top: 50%;
+}
+.wedding-top-4 {
+  top: 1rem;
+}
+.wedding-z-30 {
+  z-index: 30;
+}
+.wedding-z-50 {
+  z-index: 50;
+}
+.wedding-mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.wedding-mb-1 {
+  margin-bottom: 0.25rem;
+}
+.wedding-mb-1-5 {
+  margin-bottom: 0.375rem;
+}
+.wedding-mb-3 {
+  margin-bottom: 0.75rem;
+}
+.wedding-ml-2 {
+  margin-left: 0.5rem;
+}
+.wedding-mt-0-5 {
+  margin-top: 0.125rem;
+}
+.wedding-mt-1 {
+  margin-top: 0.25rem;
+}
+.wedding-mt-2 {
+  margin-top: 0.5rem;
+}
+.wedding-mt-2-5 {
+  margin-top: 0.625rem;
+}
+.wedding-mt-3 {
+  margin-top: 0.75rem;
+}
+.wedding-grid {
+  display: grid;
+}
+.wedding-h-1-5 {
+  height: 0.375rem;
+}
+.wedding-h-12 {
+  height: 3rem;
+}
+.wedding-h-9 {
+  height: 2.25rem;
+}
+.wedding-max-h-85vh {
+  max-height: 85vh;
+}
+.wedding-max-h-90vh {
+  max-height: 90vh;
+}
+.wedding-min-h-screen {
+  min-height: 100vh;
+}
+.wedding-w-1-5 {
+  width: 0.375rem;
+}
+.wedding-w-12 {
+  width: 3rem;
+}
+.wedding-w-9 {
+  width: 2.25rem;
+}
+.wedding-min-w-100px {
+  min-width: 100px;
+}
+.wedding-max-w-4xl {
+  max-width: 56rem;
+}
+.wedding-max-w-md {
+  max-width: 28rem;
+}
+.wedding-max-w-sm {
+  max-width: 24rem;
+}
+.wedding-flex-1 {
+  flex: 1 1 0%;
+}
+.wedding--translate-x-1-2 {
+  --wedding-translate-x: -50%;
+  transform: translate(var(--wedding-translate-x), var(--wedding-translate-y))
+    rotate(var(--wedding-rotate)) skewX(var(--wedding-skew-x))
+    skewY(var(--wedding-skew-y)) scaleX(var(--wedding-scale-x))
+    scaleY(var(--wedding-scale-y));
+}
+.wedding--translate-y-1-2 {
+  --wedding-translate-y: -50%;
+  transform: translate(var(--wedding-translate-x), var(--wedding-translate-y))
+    rotate(var(--wedding-rotate)) skewX(var(--wedding-skew-x))
+    skewY(var(--wedding-skew-y)) scaleX(var(--wedding-scale-x))
+    scaleY(var(--wedding-scale-y));
+}
+.wedding-grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+.wedding-grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.wedding-gap-0-5 {
+  gap: 0.125rem;
+}
+.wedding-gap-1 {
+  gap: 0.25rem;
+}
+.wedding-gap-1-5 {
+  gap: 0.375rem;
+}
+.wedding-gap-2 {
+  gap: 0.5rem;
+}
+.wedding-gap-2-5 {
+  gap: 0.625rem;
+}
+.wedding-gap-3 {
+  gap: 0.75rem;
+}
+.wedding-gap-x-3 {
+  column-gap: 0.75rem;
+}
+.wedding-gap-y-1 {
+  row-gap: 0.25rem;
+}
+.wedding-space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  --wedding-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--wedding-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--wedding-space-y-reverse));
+}
+.wedding-space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  --wedding-space-y-reverse: 0;
+  margin-top: calc(0.5rem * calc(1 - var(--wedding-space-y-reverse)));
+  margin-bottom: calc(0.5rem * var(--wedding-space-y-reverse));
+}
+.wedding-space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  --wedding-space-y-reverse: 0;
+  margin-top: calc(0.75rem * calc(1 - var(--wedding-space-y-reverse)));
+  margin-bottom: calc(0.75rem * var(--wedding-space-y-reverse));
+}
+.wedding-space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  --wedding-space-y-reverse: 0;
+  margin-top: calc(1rem * calc(1 - var(--wedding-space-y-reverse)));
+  margin-bottom: calc(1rem * var(--wedding-space-y-reverse));
+}
+.wedding-space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  --wedding-space-y-reverse: 0;
+  margin-top: calc(1.5rem * calc(1 - var(--wedding-space-y-reverse)));
+  margin-bottom: calc(1.5rem * var(--wedding-space-y-reverse));
+}
+.wedding-divide-y > :not([hidden]) ~ :not([hidden]) {
+  --wedding-divide-y-reverse: 0;
+  border-top-width: calc(1px * calc(1 - var(--wedding-divide-y-reverse)));
+  border-bottom-width: calc(1px * var(--wedding-divide-y-reverse));
+}
+.wedding-divide-hex-F0EBE1 > :not([hidden]) ~ :not([hidden]) {
+  --wedding-divide-opacity: 1;
+  border-color: rgb(240 235 225 / var(--wedding-divide-opacity, 1));
+}
+.wedding-overflow-x-auto {
+  overflow-x: auto;
+}
+.wedding-overflow-y-auto {
+  overflow-y: auto;
+}
+.wedding-rounded {
+  border-radius: 0.25rem;
+}
+.wedding-rounded-2xl {
+  border-radius: 1rem;
+}
+.wedding-rounded-full {
+  border-radius: 9999px;
+}
+.wedding-rounded-lg {
+  border-radius: 0.5rem;
+}
+.wedding-rounded-md {
+  border-radius: 0.375rem;
+}
+.wedding-rounded-xl {
+  border-radius: 0.75rem;
+}
+.wedding-border {
+  border-width: 1px;
+}
+.wedding-border-2 {
+  border-width: 2px;
+}
+.wedding-border-b {
+  border-bottom-width: 1px;
+}
+.wedding-border-b-2 {
+  border-bottom-width: 2px;
+}
+.wedding-border-t {
+  border-top-width: 1px;
+}
+.wedding-border-hex-D6CEC2 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(214 206 194 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-hex-E0D8C8 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(224 216 200 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-hex-E5DFD3 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(229 223 211 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-hex-E8E2D5 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(232 226 213 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-hex-E8E2D5-60 {
+  border-color: rgb(232 226 213 / 0.6);
+}
+.wedding-border-hex-F0EBE1 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(240 235 225 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-amber-100 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(254 243 199 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-amber-200 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(253 230 138 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-amber-300 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(252 211 77 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-amber-300-80 {
+  border-color: rgb(252 211 77 / 0.8);
+}
+.wedding-border-amber-500-30 {
+  border-color: rgb(245 158 11 / 0.3);
+}
+.wedding-border-amber-700 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(180 83 9 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-amber-800 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(146 64 14 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-blue-300 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(147 197 253 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-emerald-100 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(209 250 229 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-emerald-200-80 {
+  border-color: rgb(167 243 208 / 0.8);
+}
+.wedding-border-emerald-300 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(110 231 183 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-gray-200 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(229 231 235 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-purple-300 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(216 180 254 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-rose-300 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(253 164 175 / var(--wedding-border-opacity, 1));
+}
+.wedding-border-teal-300 {
+  --wedding-border-opacity: 1;
+  border-color: rgb(94 234 212 / var(--wedding-border-opacity, 1));
+}
+.wedding-bg-hex-322F2B {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(50 47 43 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-hex-F2ECE1 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(242 236 225 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-hex-FAF6EE {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(250 246 238 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-hex-FAF7F2 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(250 247 242 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-hex-FAF8F5 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(250 248 245 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-hex-FCFBF9 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(252 251 249 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-hex-FDFBF7 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(253 251 247 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-hex-FFFDF9-95 {
+  background-color: rgb(255 253 249 / 0.95);
+}
+.wedding-bg-amber-100 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(254 243 199 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-amber-50 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(255 251 235 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-amber-50-70 {
+  background-color: rgb(255 251 235 / 0.7);
+}
+.wedding-bg-amber-600 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(217 119 6 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-amber-700 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(180 83 9 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-black-60 {
+  background-color: rgb(0 0 0 / 0.6);
+}
+.wedding-bg-blue-100 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(219 234 254 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-blue-600 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(37 99 235 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-emerald-100 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(209 250 229 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-emerald-50-40 {
+  background-color: rgb(236 253 245 / 0.4);
+}
+.wedding-bg-emerald-50-70 {
+  background-color: rgb(236 253 245 / 0.7);
+}
+.wedding-bg-emerald-500 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(16 185 129 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-emerald-600 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(5 150 105 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-emerald-700 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(4 120 87 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-gray-50 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(249 250 251 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-purple-100 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(243 232 255 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-red-100 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(254 226 226 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-red-600 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-rose-100 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(255 228 230 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-rose-600 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(225 29 72 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-teal-100 {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(204 251 241 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-white {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--wedding-bg-opacity, 1));
+}
+.wedding-bg-gradient-to-br {
+  background-image: linear-gradient(
+    to bottom right,
+    var(--wedding-gradient-stops)
+  );
+}
+.wedding-bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--wedding-gradient-stops));
+}
+.wedding-from-hex-FAF6EE {
+  --wedding-gradient-from: #faf6ee var(--wedding-gradient-from-position);
+  --wedding-gradient-to: rgb(250 246 238 / 0)
+    var(--wedding-gradient-to-position);
+  --wedding-gradient-stops:
+    var(--wedding-gradient-from), var(--wedding-gradient-to);
+}
+.wedding-from-amber-600 {
+  --wedding-gradient-from: #d97706 var(--wedding-gradient-from-position);
+  --wedding-gradient-to: rgb(217 119 6 / 0) var(--wedding-gradient-to-position);
+  --wedding-gradient-stops:
+    var(--wedding-gradient-from), var(--wedding-gradient-to);
+}
+.wedding-to-hex-F5EFE3 {
+  --wedding-gradient-to: #f5efe3 var(--wedding-gradient-to-position);
+}
+.wedding-to-amber-700 {
+  --wedding-gradient-to: #b45309 var(--wedding-gradient-to-position);
+}
+.wedding-p-0-5 {
+  padding: 0.125rem;
+}
+.wedding-p-1 {
+  padding: 0.25rem;
+}
+.wedding-p-1-5 {
+  padding: 0.375rem;
+}
+.wedding-p-2 {
+  padding: 0.5rem;
+}
+.wedding-p-2-5 {
+  padding: 0.625rem;
+}
+.wedding-p-3 {
+  padding: 0.75rem;
+}
+.wedding-p-3-5 {
+  padding: 0.875rem;
+}
+.wedding-p-4 {
+  padding: 1rem;
+}
+.wedding-p-5 {
+  padding: 1.25rem;
+}
+.wedding-p-6 {
+  padding: 1.5rem;
+}
+.wedding-p-8 {
+  padding: 2rem;
+}
+.wedding-px-1-5 {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+.wedding-px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.wedding-px-2-5 {
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+}
+.wedding-px-3 {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+.wedding-px-3-5 {
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+}
+.wedding-px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.wedding-py-0-5 {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+}
+.wedding-py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.wedding-py-1-5 {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+.wedding-py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.wedding-py-2-5 {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+.wedding-py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+.wedding-py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.wedding-pb-1 {
+  padding-bottom: 0.25rem;
+}
+.wedding-pb-2 {
+  padding-bottom: 0.5rem;
+}
+.wedding-pb-3 {
+  padding-bottom: 0.75rem;
+}
+.wedding-pl-11 {
+  padding-left: 2.75rem;
+}
+.wedding-pr-10 {
+  padding-right: 2.5rem;
+}
+.wedding-pt-1 {
+  padding-top: 0.25rem;
+}
+.wedding-pt-2 {
+  padding-top: 0.5rem;
+}
+.wedding-font-sans {
+  font-family:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+}
+.wedding-font-serif {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+.wedding-text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+.wedding-text-10px {
+  font-size: 10px;
+}
+.wedding-text-11px {
+  font-size: 11px;
+}
+.wedding-text-9px {
+  font-size: 9px;
+}
+.wedding-text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+.wedding-text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+.wedding-text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.wedding-text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+.wedding-text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.wedding-font-bold {
+  font-weight: 700;
+}
+.wedding-font-extrabold {
+  font-weight: 800;
+}
+.wedding-font-medium {
+  font-weight: 500;
+}
+.wedding-font-semibold {
+  font-weight: 600;
+}
+.wedding-leading-relaxed {
+  line-height: 1.625;
+}
+.wedding-leading-tight {
+  line-height: 1.25;
+}
+.wedding-text-hex-2C2A29 {
+  --wedding-text-opacity: 1;
+  color: rgb(44 42 41 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-hex-44403C {
+  --wedding-text-opacity: 1;
+  color: rgb(68 64 60 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-hex-57534E {
+  --wedding-text-opacity: 1;
+  color: rgb(87 83 78 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-hex-78716C {
+  --wedding-text-opacity: 1;
+  color: rgb(120 113 108 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-hex-A8A29E {
+  --wedding-text-opacity: 1;
+  color: rgb(168 162 158 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-amber-400 {
+  --wedding-text-opacity: 1;
+  color: rgb(251 191 36 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-amber-600 {
+  --wedding-text-opacity: 1;
+  color: rgb(217 119 6 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-amber-700 {
+  --wedding-text-opacity: 1;
+  color: rgb(180 83 9 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-amber-700-60 {
+  color: rgb(180 83 9 / 0.6);
+}
+.wedding-text-amber-800 {
+  --wedding-text-opacity: 1;
+  color: rgb(146 64 14 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-amber-900 {
+  --wedding-text-opacity: 1;
+  color: rgb(120 53 15 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-blue-800 {
+  --wedding-text-opacity: 1;
+  color: rgb(30 64 175 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-blue-900 {
+  --wedding-text-opacity: 1;
+  color: rgb(30 58 138 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-emerald-600 {
+  --wedding-text-opacity: 1;
+  color: rgb(5 150 105 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-emerald-700 {
+  --wedding-text-opacity: 1;
+  color: rgb(4 120 87 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-emerald-800 {
+  --wedding-text-opacity: 1;
+  color: rgb(6 95 70 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-emerald-900 {
+  --wedding-text-opacity: 1;
+  color: rgb(6 78 59 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-purple-900 {
+  --wedding-text-opacity: 1;
+  color: rgb(88 28 135 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-red-600 {
+  --wedding-text-opacity: 1;
+  color: rgb(220 38 38 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-rose-800 {
+  --wedding-text-opacity: 1;
+  color: rgb(159 18 57 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-rose-900 {
+  --wedding-text-opacity: 1;
+  color: rgb(136 19 55 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-teal-900 {
+  --wedding-text-opacity: 1;
+  color: rgb(19 78 74 / var(--wedding-text-opacity, 1));
+}
+.wedding-text-white {
+  --wedding-text-opacity: 1;
+  color: rgb(255 255 255 / var(--wedding-text-opacity, 1));
+}
+.wedding-antialiased {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.wedding-placeholder-hex-A8A29E::placeholder {
+  --wedding-placeholder-opacity: 1;
+  color: rgb(168 162 158 / var(--wedding-placeholder-opacity, 1));
+}
+.wedding-opacity-60 {
+  opacity: 0.6;
+}
+.wedding-shadow-2xl {
+  --wedding-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --wedding-shadow-colored: 0 25px 50px -12px var(--wedding-shadow-color);
+  box-shadow:
+    var(--wedding-ring-offset-shadow, 0 0 #0000),
+    var(--wedding-ring-shadow, 0 0 #0000), var(--wedding-shadow);
+}
+.wedding-shadow-inner {
+  --wedding-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --wedding-shadow-colored: inset 0 2px 4px 0 var(--wedding-shadow-color);
+  box-shadow:
+    var(--wedding-ring-offset-shadow, 0 0 #0000),
+    var(--wedding-ring-shadow, 0 0 #0000), var(--wedding-shadow);
+}
+.wedding-shadow-lg {
+  --wedding-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --wedding-shadow-colored:
+    0 10px 15px -3px var(--wedding-shadow-color),
+    0 4px 6px -4px var(--wedding-shadow-color);
+  box-shadow:
+    var(--wedding-ring-offset-shadow, 0 0 #0000),
+    var(--wedding-ring-shadow, 0 0 #0000), var(--wedding-shadow);
+}
+.wedding-shadow-md {
+  --wedding-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --wedding-shadow-colored:
+    0 4px 6px -1px var(--wedding-shadow-color),
+    0 2px 4px -2px var(--wedding-shadow-color);
+  box-shadow:
+    var(--wedding-ring-offset-shadow, 0 0 #0000),
+    var(--wedding-ring-shadow, 0 0 #0000), var(--wedding-shadow);
+}
+.wedding-shadow-none {
+  --wedding-shadow: 0 0 #0000;
+  --wedding-shadow-colored: 0 0 #0000;
+  box-shadow:
+    var(--wedding-ring-offset-shadow, 0 0 #0000),
+    var(--wedding-ring-shadow, 0 0 #0000), var(--wedding-shadow);
+}
+.wedding-shadow-sm {
+  --wedding-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --wedding-shadow-colored: 0 1px 2px 0 var(--wedding-shadow-color);
+  box-shadow:
+    var(--wedding-ring-offset-shadow, 0 0 #0000),
+    var(--wedding-ring-shadow, 0 0 #0000), var(--wedding-shadow);
+}
+.wedding-shadow-xl {
+  --wedding-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --wedding-shadow-colored:
+    0 20px 25px -5px var(--wedding-shadow-color),
+    0 8px 10px -6px var(--wedding-shadow-color);
+  box-shadow:
+    var(--wedding-ring-offset-shadow, 0 0 #0000),
+    var(--wedding-ring-shadow, 0 0 #0000), var(--wedding-shadow);
+}
+.wedding-filter {
+  filter: var(--wedding-blur) var(--wedding-brightness) var(--wedding-contrast)
+    var(--wedding-grayscale) var(--wedding-hue-rotate) var(--wedding-invert)
+    var(--wedding-saturate) var(--wedding-sepia) var(--wedding-drop-shadow);
+}
+.wedding-backdrop-blur-md {
+  --wedding-backdrop-blur: blur(12px);
+  -webkit-backdrop-filter: var(--wedding-backdrop-blur)
+    var(--wedding-backdrop-brightness) var(--wedding-backdrop-contrast)
+    var(--wedding-backdrop-grayscale) var(--wedding-backdrop-hue-rotate)
+    var(--wedding-backdrop-invert) var(--wedding-backdrop-opacity)
+    var(--wedding-backdrop-saturate) var(--wedding-backdrop-sepia);
+  backdrop-filter: var(--wedding-backdrop-blur)
+    var(--wedding-backdrop-brightness) var(--wedding-backdrop-contrast)
+    var(--wedding-backdrop-grayscale) var(--wedding-backdrop-hue-rotate)
+    var(--wedding-backdrop-invert) var(--wedding-backdrop-opacity)
+    var(--wedding-backdrop-saturate) var(--wedding-backdrop-sepia);
+}
+.wedding-transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.wedding-transition-colors {
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.wedding-transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.wedding-selection-bg-amber-100 *::selection {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(254 243 199 / var(--wedding-bg-opacity, 1));
+}
+.wedding-selection-bg-amber-100::selection {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(254 243 199 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-hex-E8E2D5:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(232 226 213 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-hex-F2ECE1:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(242 236 225 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-hex-F5F2EA:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(245 242 234 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-amber-100:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(254 243 199 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-amber-100-80:hover {
+  background-color: rgb(254 243 199 / 0.8);
+}
+.wedding-hover-bg-amber-50:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(255 251 235 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-amber-800:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(146 64 14 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-emerald-50:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(236 253 245 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-emerald-800:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(6 95 70 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-red-50:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(254 242 242 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-red-700:hover {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(185 28 28 / var(--wedding-bg-opacity, 1));
+}
+.wedding-hover-bg-white-50:hover {
+  background-color: rgb(255 255 255 / 0.5);
+}
+.wedding-hover-text-hex-2C2A29:hover {
+  --wedding-text-opacity: 1;
+  color: rgb(44 42 41 / var(--wedding-text-opacity, 1));
+}
+.wedding-hover-text-hex-57534E:hover {
+  --wedding-text-opacity: 1;
+  color: rgb(87 83 78 / var(--wedding-text-opacity, 1));
+}
+.wedding-hover-text-red-700:hover {
+  --wedding-text-opacity: 1;
+  color: rgb(185 28 28 / var(--wedding-text-opacity, 1));
+}
+.wedding-hover-underline:hover {
+  text-decoration-line: underline;
+}
+.wedding-focus-border-amber-600:focus {
+  --wedding-border-opacity: 1;
+  border-color: rgb(217 119 6 / var(--wedding-border-opacity, 1));
+}
+.wedding-focus-bg-white:focus {
+  --wedding-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--wedding-bg-opacity, 1));
+}
+.wedding-focus-outline-none:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.wedding-active-scale-95:active {
+  --wedding-scale-x: 0.95;
+  --wedding-scale-y: 0.95;
+  transform: translate(var(--wedding-translate-x), var(--wedding-translate-y))
+    rotate(var(--wedding-rotate)) skewX(var(--wedding-skew-x))
+    skewY(var(--wedding-skew-y)) scaleX(var(--wedding-scale-x))
+    scaleY(var(--wedding-scale-y));
+}
+@media (min-width: 768px) {
+  .wedding-md-grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wedding-md-grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wedding-md-p-6 {
+    padding: 1.5rem;
+  }
+
+  .wedding-md-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  .wedding-md-text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Native HTML visibility and dialog scrolling. */
+[hidden] {
+  display: none !important;
+}
+body.wedding-dialog-open {
+  overflow: hidden;
+}
+
+/* Native navigation links retain the original button text colors on hover. */
+a.wedding-text-white:hover {
+  color: #fff;
+}
+a.wedding-text-amber-900:hover {
+  color: #78350f;
+}
+a.wedding-text-hex-78716C:hover {
+  color: #78716c;
+}
+a.wedding-text-hex-57534E:hover {
+  color: #57534e;
+}
+
+/* Admin guest, angpau and table management. */
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.admin-section {
+  min-width: 0;
+  border: 1px solid var(--wedding-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+}
+.admin-section-title {
+  margin: 0;
+  color: var(--wedding-text);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.admin-section-title > i {
+  margin-right: 0.375rem;
+  color: var(--wedding-primary);
+}
+.admin-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.admin-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.875rem 0;
+  border: 1px solid #d6cec2;
+  border-radius: 0.75rem;
+  padding-left: 0.75rem;
+  background: #faf8f5;
+  color: #78716c;
+}
+.admin-search .admin-input {
+  border: 0;
+  background: transparent;
+  min-width: 0;
+}
+.admin-search:focus-within {
+  outline: 2px solid #d97706;
+  outline-offset: 2px;
+}
+.admin-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d6cec2;
+  border-radius: 0.75rem;
+  background: #faf8f5;
+  padding: 0.625rem 0.75rem;
+  color: var(--wedding-text);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.admin-input:focus-visible {
+  outline: 2px solid #d97706;
+  outline-offset: 2px;
+}
+.admin-search .admin-input:focus {
+  outline: none;
+}
+.admin-input[readonly] {
+  background: #f5f2ea;
+  color: #57534e;
+}
+.admin-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.375rem;
+}
+.admin-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e8e2d5;
+  border-radius: 0.75rem;
+}
+.admin-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.admin-table th {
+  background: #faf7f2;
+  color: #57534e;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.admin-table th,
+.admin-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f0ebe1;
+  vertical-align: middle;
+}
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.admin-table tbody tr:hover {
+  background: #fffdf9;
+}
+.admin-subtext {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: #78716c;
+}
+.admin-money {
+  color: #78350f;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.admin-muted {
+  color: #a8a29e;
+  font-weight: 400;
+}
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.admin-badge-blue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.admin-badge-rose {
+  background: #ffe4e6;
+  color: #9f1239;
+}
+.admin-badge-arrived {
+  background: #d1fae5;
+  color: #065f46;
+}
+.admin-badge-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.admin-badge-inactive {
+  background: #f5f5f4;
+  color: #78716c;
+}
+.admin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+}
+.admin-tag {
+  border: 1px solid;
+  border-radius: 0.375rem;
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.625rem;
+}
+.admin-outline-button,
+.admin-danger-button,
+.admin-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+.admin-outline-button {
+  color: #92400e;
+  border-color: #d6b790;
+  background: #fff;
+}
+.admin-outline-button:hover {
+  background: #fffbeb;
+}
+.admin-primary-button {
+  background: #b45309;
+  border-color: #b45309;
+  color: #fff;
+  padding: 0.625rem 1rem;
+}
+.admin-primary-button:hover {
+  background: #92400e;
+}
+.admin-danger-button {
+  background: #fff;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+.admin-danger-button:hover:not(:disabled) {
+  background: #fef2f2;
+}
+.admin-danger-button:disabled {
+  color: #a8a29e;
+  background: #f5f5f4;
+  border-color: #e7e5e4;
+  cursor: not-allowed;
+}
+.admin-outline-button:focus-visible,
+.admin-primary-button:focus-visible,
+.admin-danger-button:focus-visible {
+  outline: 2px solid #d97706;
+  outline-offset: 3px;
+}
+.admin-help {
+  margin-top: 0.625rem;
+  color: #78716c;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+}
+.admin-empty {
+  padding: 1.25rem 0.5rem;
+  color: #78716c;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+.admin-gift-breakdown {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.8;
+}
+.admin-table-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem;
+  align-items: end;
+  padding: 1rem;
+  border: 1px solid var(--wedding-border);
+  border-radius: 1rem;
+}
+.admin-table-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.admin-table-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--wedding-border);
+  border-radius: 0.875rem;
+  background: #fffdf9;
+}
+.admin-table-number {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.admin-table-number > i {
+  color: #b45309;
+}
+.admin-table-actions {
+  max-width: 9rem;
+  text-align: right;
+}
+.admin-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #78716c;
+}
+.admin-pagination button:disabled {
+  color: #a8a29e;
+  border-color: #e7e5e4;
+  background: #f5f5f4;
+  cursor: not-allowed;
+}
+@media (max-width: 575px) {
+  .admin-summary-grid,
+  .admin-table-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-table-form {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .admin-table-form > button {
+    grid-column: 1 / -1;
+  }
+  .admin-section {
+    padding: 0.75rem;
+  }
+}

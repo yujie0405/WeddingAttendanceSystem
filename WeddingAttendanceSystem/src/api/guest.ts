@@ -1,10 +1,10 @@
-import { storage } from './client';
-import { INITIAL_GUESTS } from '../data';
-import type { Guest } from '../types';
-
-const KEY = 'wedding_guests';
-
+import type { Guest } from "../types";
+import { weddingStore } from "./client";
 export const guestApi = {
-  getAll: async (): Promise<Guest[]> => storage.get(KEY, INITIAL_GUESTS),
-  saveAll: async (guests: Guest[]): Promise<void> => storage.set(KEY, guests),
+  getAll: async (): Promise<Guest[]> => weddingStore.getSnapshot().guests,
+  saveAll: async (guests: Guest[]): Promise<void> => {
+    await weddingStore.transact((s) => {
+      s.guests = guests;
+    });
+  },
 };
