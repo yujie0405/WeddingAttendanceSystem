@@ -9,17 +9,116 @@
 
   <!-- Font Awesome 6 Icons CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-  <!-- React & ReactDOM CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-
-  <!-- Babel Compiler for JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body class="wedding-bg-hex-FDFBF7 wedding-text-hex-2C2A29 wedding-font-sans wedding-antialiased wedding-selection-bg-amber-100">
-<div id="root" data-page="add-guest" data-base="../"></div>
-<script type="text/babel" src="../wedding.js"></script>
+<body data-page="add-guest" data-base="../" class="wedding-bg-hex-FDFBF7 wedding-text-hex-2C2A29 wedding-font-sans wedding-antialiased wedding-selection-bg-amber-100">
+<div class="wedding-min-h-screen wedding-bg-hex-FDFBF7 wedding-text-hex-2C2A29 wedding-font-sans d-flex flex-column wedding-selection-bg-amber-100" id="application">
+<header class="position-sticky wedding-top-0 wedding-z-30 wedding-bg-hex-FFFDF9-95 wedding-backdrop-blur-md wedding-border-b wedding-border-hex-E8E2D5 ">
+<div class="wedding-max-w-4xl wedding-mx-auto wedding-px-4 wedding-py-3 d-flex align-items-center justify-content-between">
+<div class="d-flex align-items-center wedding-gap-2-5">
+<div class="wedding-w-9 wedding-h-9 wedding-rounded-full wedding-bg-gradient-to-br wedding-from-amber-600 wedding-to-amber-700 wedding-text-white d-flex align-items-center justify-content-center wedding-font-serif wedding-text-lg wedding-font-bold ">囍</div>
+<div>
+<h1 class="wedding-text-base wedding-font-bold wedding-text-hex-2C2A29 wedding-leading-tight">婚礼宾客签到与礼金管理系统</h1>
+<p class="wedding-text-xs wedding-text-hex-78716C d-flex align-items-center wedding-gap-1-5 wedding-mt-0-5" data-field="current-user">
+<span class="d-inline-block wedding-w-1-5 wedding-h-1-5 wedding-rounded-full wedding-bg-emerald-500">
+</span>接待员 - 阿杰 (管理员)</p>
+</div>
+</div>
+<div class="d-flex align-items-center wedding-gap-2">
+<a class="wedding-text-xs wedding-font-medium wedding-px-3 wedding-py-1-5 wedding-rounded-lg wedding-border wedding-transition-all d-flex align-items-center wedding-gap-1-5 wedding-bg-amber-700 wedding-text-white wedding-border-amber-700 " href="../mainpage.html">
+<i class="fa-solid fa-user-check">
+</i>
+<span>返回签到主页</span>
+</a>
+<button class="wedding-p-1-5 wedding-text-hex-78716C wedding-hover-text-red-700 wedding-hover-bg-red-50 wedding-rounded-lg wedding-transition-colors" title="退出登录" data-action="logout">
+<i class="fa-solid fa-right-from-bracket">
+</i>
+</button>
+</div>
+</div>
+</header>
+<main class="wedding-flex-1 wedding-max-w-4xl w-100 wedding-mx-auto wedding-p-3 wedding-md-p-6">
+<div class="wedding-bg-white wedding-rounded-2xl wedding-border wedding-border-hex-E8E2D5  overflow-hidden">
+<div class="d-flex wedding-border-b wedding-border-hex-E8E2D5 wedding-bg-hex-FAF7F2 wedding-overflow-x-auto" aria-label="后台导航">
+<a class="wedding-flex-1 wedding-min-w-100px wedding-py-3 wedding-text-xs wedding-font-bold d-flex align-items-center justify-content-center wedding-gap-1-5 wedding-text-hex-78716C" href="../admin/dashboard.html">
+<i class="fa-solid fa-chart-pie">
+</i>
+<span>仪表盘</span>
+</a>
+<a class="wedding-flex-1 wedding-min-w-100px wedding-py-3 wedding-text-xs wedding-font-bold wedding-transition-colors d-flex align-items-center justify-content-center wedding-gap-1-5 wedding-text-hex-78716C" href="../admin/tag.html">
+<i class="fa-solid fa-tag wedding-text-amber-700">
+</i>
+<span>全局标签管理</span>
+</a>
+<a class="wedding-flex-1 wedding-min-w-100px wedding-py-3 wedding-text-xs wedding-font-bold wedding-transition-colors d-flex align-items-center justify-content-center wedding-gap-1-5 wedding-bg-white wedding-text-amber-900 wedding-border-b-2 wedding-border-amber-700" href="../admin/add-guest.html" aria-current="page">
+<i class="fa-solid fa-user">
+</i>
+<span>新增/管理宾客</span>
+</a>
+<a class="wedding-flex-1 wedding-min-w-100px wedding-py-3 wedding-text-xs wedding-font-bold wedding-transition-colors d-flex align-items-center justify-content-center wedding-gap-1-5 wedding-text-hex-78716C" href="../admin/table-setting.html">
+<i class="fa-solid fa-table-cells">
+</i>
+<span>桌位设置</span>
+</a>
+</div>
+<div class="wedding-p-4 wedding-md-p-6 wedding-space-y-6">
+<form class="wedding-space-y-4 wedding-text-xs" id="add-guest-form">
+<h3 class="wedding-font-bold wedding-text-sm wedding-text-hex-2C2A29">新增单个宾客</h3>
+<div class="wedding-grid wedding-grid-cols-2 wedding-gap-2">
+<div>
+<label class="d-block wedding-font-semibold wedding-mb-1" for="add-guest-field-0">姓名</label>
+<input type="text" required="" class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl" value="" name="name" id="add-guest-field-0">
+</div>
+<div>
+<label class="d-block wedding-font-semibold wedding-mb-1" for="add-guest-field-1">身份关系</label>
+<input type="text" placeholder="如: 同事" class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl" value="" name="relationship" id="add-guest-field-1">
+</div>
+</div>
+<div class="wedding-grid wedding-grid-cols-2 wedding-gap-2">
+<div>
+<label class="d-block wedding-font-semibold wedding-mb-1" for="add-guest-field-2">婚礼边</label>
+<select class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl" name="side" id="add-guest-field-2">
+<option value="GROOM" selected="">男方</option>
+<option value="BRIDE">女方</option>
+</select>
+</div>
+<div>
+<label class="d-block wedding-font-semibold wedding-mb-1" for="add-guest-field-3">安排桌号</label>
+<select class="w-100 wedding-px-3 wedding-py-2 wedding-bg-hex-FAF8F5 wedding-border wedding-border-hex-D6CEC2 wedding-rounded-xl" name="tableNumber" id="add-guest-field-3">
+<option value="01" selected="">01 桌</option>
+<option value="02">02 桌</option>
+<option value="03">03 桌</option>
+<option value="04">04 桌</option>
+<option value="05">05 桌</option>
+<option value="06">06 桌</option>
+</select>
+</div>
+</div>
+<button type="submit" class="w-100 wedding-py-2-5 wedding-bg-amber-700 wedding-text-white wedding-rounded-xl wedding-font-bold wedding-hover-bg-amber-800">录入宾客</button>
+</form>
+</div>
+</div>
+</main>
+</div>
+<div id="login-view" hidden>
+</div>
+<div id="modal-root">
+</div>
+<div id="toast" role="status" hidden class="position-fixed wedding-top-4 wedding-left-1-2 wedding--translate-x-1-2 wedding-z-50 wedding-bg-hex-322F2B wedding-text-white wedding-text-xs wedding-md-text-sm wedding-px-4 wedding-py-2-5 wedding-rounded-full wedding-shadow-lg wedding-border wedding-border-amber-500-30">
+<i class="fa-solid fa-circle-check wedding-text-amber-400">
+</i> <span>
+</span>
+</div>
+<template id="login-template">
+<div class="wedding-min-h-screen wedding-bg-hex-FDFBF7 d-flex align-items-center justify-content-center wedding-p-4">
+<div class="wedding-bg-white wedding-p-6 wedding-rounded-2xl wedding-border wedding-border-hex-E8E2D5 wedding-shadow-md wedding-max-w-sm w-100 wedding-space-y-4 text-center">
+<div class="wedding-w-12 wedding-h-12 wedding-rounded-full wedding-bg-amber-700 wedding-text-white d-flex align-items-center justify-content-center wedding-mx-auto wedding-text-xl wedding-font-bold wedding-font-serif">囍</div>
+<h2 class="wedding-text-lg wedding-font-bold wedding-text-hex-2C2A29">婚礼宾客签到系统登录</h2>
+<button class="w-100 wedding-py-2-5 wedding-bg-amber-700 wedding-text-white wedding-rounded-xl wedding-font-bold wedding-hover-bg-amber-800 wedding-transition-colors" data-action="login">以管理员登录体验</button>
+</div>
+</div>
+</template>
+<script src="../wedding.js" defer>
+</script>
 </body>
 </html>

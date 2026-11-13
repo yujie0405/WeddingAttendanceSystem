@@ -1213,3 +1213,14 @@ video {
   }
 }
 a { color: inherit; text-decoration: inherit; } button:not(:disabled) { cursor: pointer; }
+
+/* Native HTML visibility and dialog scrolling. */
+[hidden] { display: none !important; }
+body.wedding-dialog-open { overflow: hidden; }
+
+/* Native navigation links retain the original button text colors on hover. */
+a.wedding-text-white:hover { color: #fff; }
+a.wedding-text-amber-900:hover { color: #78350f; }
+a.wedding-text-hex-78716C:hover { color: #78716c; }
+a.wedding-text-hex-57534E:hover { color: #57534e; }
+

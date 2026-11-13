@@ -1,0 +1,16 @@
+﻿Plain HTML conversion verification
+
+All five pages use native HTML forms, buttons and links with wedding.js. No React, ReactDOM, JSX, Babel or runtime compilation is included.
+code_artifact.html is now a plain HTML copy of mainpage.html. The original reference is preserved in template-reference/code_artifact.react-original.html.
+
+Verified in headless Microsoft Edge:
+- All five pages render without JavaScript errors.
+- Individual and family check-in, guest search, all four filters, family collapse/expand.
+- Individual and family gifts, quick amounts, positive-amount validation, history and voiding.
+- Guest creation/editing/tag selection, tag creation/deletion, table listing.
+- Dashboard totals exclude voided gifts; login/logout survives refresh.
+- Direct file:// opening, adding a guest, navigating between pages and refresh preserve data.
+- Desktop (1280px) and mobile (390px) comparisons of the main screen and gift, edit, family-confirmation and history dialogs match the original layout/colors/typography/borders/padding, allowing 0.1px for text-node shaping.
+
+Opening: double-click template/mainpage.html. No local server or build command is needed. Bootstrap and Font Awesome use CDN stylesheets, so their styling/icons require an internet connection.
+The original read-only table-list behavior is preserved. Records are browser-local demo data, as before.
