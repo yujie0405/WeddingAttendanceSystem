@@ -3,110 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>桌位设置 - 婚礼后台管理</title>
+  <title>婚礼宾客签到与礼金管理系统 - 桌位设置</title>
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+
+  <!-- Font Awesome 6 Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- React & ReactDOM CDN -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+  <!-- Babel Compiler for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-[#FDFBF7] text-[#2C2A29] font-sans antialiased">
-  <div id="root"></div>
-  <script src="../wedding.js"></script>
-  <script type="text/babel">
-    const { useState } = React;
+<body class="bg-[#FDFBF7] text-[#2C2A29] font-sans antialiased selection:bg-amber-100">
 
-    function TableSettingApp() {
-      const [tables, setTables] = useState(INITIAL_TABLES);
-      const [newTableNum, setNewTableNum] = useState('');
-      const [newCapacity, setNewCapacity] = useState('10');
-      const [toast, setToast] = useState(null);
+  <div id="root" data-page="table-setting" data-base="../"></div>
 
-      const showToast = (msg) => {
-        setToast(msg);
-        setTimeout(() => setToast(null), 3000);
-      };
-
-      const handleAddTable = (e) => {
-        e.preventDefault();
-        if (!newTableNum.trim()) return;
-        const newT = {
-          id: `t-${Date.now()}`,
-          number: newTableNum.trim().padStart(2, '0'),
-          capacity: Number(newCapacity) || 10,
-          tags: []
-        };
-        setTables([...tables, newT]);
-        showToast(`成功添加 [${newT.number}桌]`);
-        setNewTableNum('');
-      };
-
-      return (
-        <div className="min-h-screen bg-[#FDFBF7] text-[#2C2A29] font-sans flex flex-col">
-          {toast && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#322F2B] text-white text-xs px-4 py-2.5 rounded-full shadow-lg">
-              {toast}
-            </div>
-          )}
-          <header className="sticky top-0 z-35 bg-[#FFFDF9]/95 backdrop-blur-md border-b border-[#E8E2D5] shadow-xs">
-            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-lg font-bold">囍</div>
-                <h1 className="text-base font-bold text-[#2C2A29]">宴席桌位设置</h1>
-              </div>
-              <nav className="flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-xl border border-[#E8E2D5] text-xs font-semibold">
-                <a href="../mainpage.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">签到主页</a>
-                <a href="dashboard.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">数据看板</a>
-                <a href="tag.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">标签管理</a>
-                <a href="add-guest.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">新增宾客</a>
-                <a href="table-setting.html" className="px-3 py-1.5 rounded-lg bg-amber-700 text-white shadow-xs">桌位设置</a>
-              </nav>
-            </div>
-          </header>
-
-          <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
-            <div className="bg-white rounded-2xl border border-[#E8E2D5] p-5 shadow-xs space-y-4">
-              <h3 className="font-bold text-base text-[#2C2A29]">新增宴席桌号</h3>
-              <form onSubmit={handleAddTable} className="flex gap-2">
-                <input
-                  type="text"
-                  value={newTableNum}
-                  onChange={e => setNewTableNum(e.target.value)}
-                  placeholder="桌号 (如: 07, 08)"
-                  className="flex-1 px-3 py-2.5 bg-[#FAF8F5] border border-[#D6CEC2] rounded-xl text-xs focus:outline-none focus:border-amber-600"
-                />
-                <select
-                  value={newCapacity}
-                  onChange={e => setNewCapacity(e.target.value)}
-                  className="px-3 py-2.5 bg-[#FAF8F5] border border-[#D6CEC2] rounded-xl text-xs"
-                >
-                  <option value="8">8人桌</option>
-                  <option value="10">10人桌</option>
-                  <option value="12">12人桌</option>
-                </select>
-                <button type="submit" className="px-5 py-2.5 bg-amber-700 text-white rounded-xl text-xs font-bold hover:bg-amber-800">添加桌位</button>
-              </form>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#E8E2D5] p-5 shadow-xs space-y-4">
-              <h3 className="font-bold text-base text-[#2C2A29]">现有桌位列表</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {tables.map(t => (
-                  <div key={t.id} className="p-3.5 border border-[#E8E2D5] rounded-xl bg-[#FAF8F5] flex items-center justify-between">
-                    <div>
-                      <span className="font-extrabold text-base text-[#2C2A29]">{t.number} 桌</span>
-                      <span className="text-xs text-[#78716C] ml-2">(标准容量: {t.capacity} 人)</span>
-                    </div>
-                    <span className="text-xs px-2.5 py-1 bg-amber-100 text-amber-900 rounded-lg font-semibold">可用</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </main>
-        </div>
-      );
-    }
-    ReactDOM.createRoot(document.getElementById('root')).render(<TableSettingApp />);
-  </script>
+  <!-- Shared logic (must be served over http, see README note) -->
+  <script type="text/babel" src="../wedding.js"></script>
 </body>
 </html>

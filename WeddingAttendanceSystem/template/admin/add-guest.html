@@ -3,165 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>新增宾客 - 婚礼后台管理</title>
+  <title>婚礼宾客签到与礼金管理系统 - 新增宾客</title>
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+
+  <!-- Font Awesome 6 Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- React & ReactDOM CDN -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+  <!-- Babel Compiler for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-[#FDFBF7] text-[#2C2A29] font-sans antialiased">
-  <div id="root"></div>
-  <script src="../wedding.js"></script>
-  <script type="text/babel">
-    const { useState } = React;
+<body class="bg-[#FDFBF7] text-[#2C2A29] font-sans antialiased selection:bg-amber-100">
 
-    function AddGuestApp() {
-      const [guests, setGuests] = useState(INITIAL_GUESTS);
-      const [tables] = useState(INITIAL_TABLES);
-      const [tags] = useState(INITIAL_TAGS);
+  <div id="root" data-page="add-guest" data-base="../"></div>
 
-      const [name, setName] = useState('');
-      const [relationship, setRelationship] = useState('');
-      const [side, setSide] = useState('GROOM');
-      const [tableNumber, setTableNumber] = useState('01');
-      const [selectedTags, setSelectedTags] = useState([]);
-      const [toast, setToast] = useState(null);
-
-      const showToast = (msg) => {
-        setToast(msg);
-        setTimeout(() => setToast(null), 3000);
-      };
-
-      const toggleTag = (id) => {
-        setSelectedTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
-      };
-
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!name.trim()) return;
-        const newG = {
-          id: `guest-${Date.now()}`,
-          name: name.trim(),
-          relationship: relationship.trim() || '宾客',
-          tableNumber,
-          side,
-          tags: selectedTags,
-          status: 'PENDING',
-          isActive: true
-        };
-        setGuests([newG, ...guests]);
-        showToast(`成功新增宾客: ${newG.name}`);
-        setName('');
-        setRelationship('');
-        setSelectedTags([]);
-      };
-
-      return (
-        <div className="min-h-screen bg-[#FDFBF7] text-[#2C2A29] font-sans flex flex-col">
-          {toast && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#322F2B] text-white text-xs px-4 py-2.5 rounded-full shadow-lg">
-              {toast}
-            </div>
-          )}
-          <header className="sticky top-0 z-35 bg-[#FFFDF9]/95 backdrop-blur-md border-b border-[#E8E2D5] shadow-xs">
-            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-600 to-amber-700 text-white flex items-center justify-center font-serif text-lg font-bold">囍</div>
-                <h1 className="text-base font-bold text-[#2C2A29]">新增宾客登记</h1>
-              </div>
-              <nav className="flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-xl border border-[#E8E2D5] text-xs font-semibold">
-                <a href="../mainpage.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">签到主页</a>
-                <a href="dashboard.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">数据看板</a>
-                <a href="tag.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">标签管理</a>
-                <a href="add-guest.html" className="px-3 py-1.5 rounded-lg bg-amber-700 text-white shadow-xs">新增宾客</a>
-                <a href="table-setting.html" className="px-3 py-1.5 rounded-lg text-[#57534E] hover:bg-[#F2ECE1]">桌位设置</a>
-              </nav>
-            </div>
-          </header>
-
-          <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
-            <div className="bg-white rounded-2xl border border-[#E8E2D5] p-5 shadow-xs">
-              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-                <div>
-                  <label className="block font-semibold mb-1 text-[#44403C]">宾客姓名</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
-                    placeholder="输入宾客全名"
-                    className="w-full px-3 py-2.5 bg-[#FAF8F5] border border-[#D6CEC2] rounded-xl text-sm focus:outline-none focus:border-amber-600"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold mb-1 text-[#44403C]">婚礼边</label>
-                    <select
-                      value={side}
-                      onChange={e => setSide(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-[#FAF8F5] border border-[#D6CEC2] rounded-xl text-sm focus:outline-none focus:border-amber-600"
-                    >
-                      <option value="GROOM">男方 (Groom)</option>
-                      <option value="BRIDE">女方 (Bride)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-semibold mb-1 text-[#44403C]">身份关系</label>
-                    <input
-                      type="text"
-                      value={relationship}
-                      onChange={e => setRelationship(e.target.value)}
-                      placeholder="如: 大学同学 / 舅舅"
-                      className="w-full px-3 py-2.5 bg-[#FAF8F5] border border-[#D6CEC2] rounded-xl text-sm focus:outline-none focus:border-amber-600"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-semibold mb-1 text-[#44403C]">分配桌号</label>
-                  <select
-                    value={tableNumber}
-                    onChange={e => setTableNumber(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#FAF8F5] border border-[#D6CEC2] rounded-xl text-sm focus:outline-none focus:border-amber-600"
-                  >
-                    {tables.map(t => <option key={t.id} value={t.number}>{t.number} 桌 (容量 {t.capacity}人)</option>)}
-                  </select>
-                </div>
-
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8E2D5]">
-                  <label className="block font-bold mb-2 text-[#44403C]">选择标签</label>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => {
-                      const isSelected = selectedTags.includes(tag.id);
-                      return (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          onClick={() => toggleTag(tag.id)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1 ${
-                            isSelected ? 'bg-amber-700 text-white border-amber-800 shadow-xs' : 'bg-white text-[#57534E] border-[#D6CEC2]'
-                          }`}
-                        >
-                          <i className={`fa-solid ${isSelected ? 'fa-check' : 'fa-plus'}`}></i>
-                          <span>{tag.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <button type="submit" className="w-full py-3 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-sm font-bold shadow-xs">
-                  确认添加宾客
-                </button>
-              </form>
-            </div>
-          </main>
-        </div>
-      );
-    }
-    ReactDOM.createRoot(document.getElementById('root')).render(<AddGuestApp />);
-  </script>
+  <!-- Shared logic (must be served over http, see README note) -->
+  <script type="text/babel" src="../wedding.js"></script>
 </body>
 </html>
