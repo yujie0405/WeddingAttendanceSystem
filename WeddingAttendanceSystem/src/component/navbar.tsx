@@ -8,12 +8,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../hooks/useAuth";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useState } from "react";
 export function Navbar() {
   const { t } = useTranslation();
 
   const { user, logout } = useAuth();
   const adminPage = useLocation().pathname.startsWith("/admin");
   const navigate = useNavigate();
+  const [logoutFailed, setLogoutFailed] = useState(false);
   return (
     <header className="position-sticky wedding-top-0 wedding-z-30 wedding-bg-hex-FFFDF9-95 wedding-backdrop-blur-md wedding-border-b wedding-border-hex-E8E2D5">
       <div className="navbar-inner wedding-max-w-4xl wedding-mx-auto wedding-px-4 wedding-py-3 d-flex align-items-center justify-content-between">
@@ -50,13 +52,14 @@ export function Navbar() {
           <button
             className="wedding-p-1-5 wedding-text-hex-78716C"
             title={t("Nav.Logout")}
-            onClick={() => {
-              logout();
-              navigate("/login");
+            onClick={async () => {
+              try { await logout(); navigate("/login"); }
+              catch { setLogoutFailed(true); }
             }}
           >
             <FontAwesomeIcon icon={faRightFromBracket} />
           </button>
+          {logoutFailed && <span role="alert">{t("Backend.RequestFailed")}</span>}
         </div>
       </div>
     </header>

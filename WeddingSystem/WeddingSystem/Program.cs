@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using WeddingSystem.BLO;
 using WeddingSystem.Configuration;
 using WeddingSystem.DBO;
@@ -22,12 +23,15 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT"
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Paste only the Supabase user session access_token, without the Bearer prefix. " +
+            "Swagger adds Authorization: Bearer <access_token>. The connected frontend signs in through Supabase Auth."
     });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        [new OpenApiSecurityScheme { Reference = new() { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }] = []
-    });
+    options.OperationFilter<SwaggerBearerSecurityFilter>();
 });
 builder.Services.AddDbContext<WeddingDbContext>((services, options) =>
 {
@@ -73,8 +77,39 @@ var app = builder.Build();
 app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
+    try
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await using var scope = app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<WeddingDbContext>();
+        await db.Database.ExecuteSqlRawAsync("SELECT 1", timeout.Token);
+        Console.WriteLine("Connection success");
+    }
+    catch (Exception exception)
+    {
+        Console.WriteLine("Connection failed");
+        // Use fixed messages: raw exception text may expose database credentials.
+        Console.WriteLine(exception switch
+        {
+            ApiException { Code: "DATABASE_NOT_CONFIGURED" } =>
+                "The WeddingDb connection string is not configured.",
+            OperationCanceledException or TimeoutException =>
+                "The database connection check timed out.",
+            PostgresException { SqlState: "28P01" or "28000" } =>
+                "Database authentication failed. Check the configured database credentials.",
+            PostgresException { SqlState: "3D000" } =>
+                "The configured database does not exist.",
+            NpgsqlException =>
+                "Unable to connect to PostgreSQL. Check network access, server settings, and TLS configuration.",
+            _ => "The database connection check could not complete. Check the server configuration."
+        });
+    }
+
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("v1/swagger.json", "WeddingSystem API v1");
+    });
 }
 if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 app.UseCors();

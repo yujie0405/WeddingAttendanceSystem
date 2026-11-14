@@ -2,6 +2,7 @@
 **/obj/
 .vs/
 publish/
+.browser-tools/
 *.user
 **/App_Data/
 **/web.Local.config

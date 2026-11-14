@@ -135,15 +135,37 @@ Endpoints use JWT bearer authentication. Configure a Supabase Auth issuer with a
 
 All valid signed-in users of the configured issuer are treated as staff. Restrict account provisioning to intended reception staff (for example, invitation-only registration). Users listed by UUID in the server-controlled `Authentication:AdminUserIds` setting additionally satisfy the Admin policy. A username containing `admin`, user metadata, or a frontend-selected role grants no permissions.
 
-With the default blank settings, health and development Swagger work, while domain endpoints remain protected. Missing database configuration does not prevent the host from starting. Authorized domain requests require a working connection. The React demo login does not produce valid API credentials and has not been replaced in this change.
+With the default blank settings, health and development Swagger work, while domain endpoints remain protected. Missing database configuration does not prevent the host from starting. Authorized domain requests require a working connection. The connected React login now uses Supabase Auth; the old demo login is available only with explicit `VITE_DATA_SOURCE=local`.
 
 CORS allows configured origins; it is not authentication. A shared direct database login does not automatically assume the Supabase user's identity for RLS, and owner credentials can bypass RLS. API authorization and database grants must both be configured appropriately.
+
+### Swagger Authorize and obtaining a user access token
+
+Swagger uses the OpenAPI `Bearer` definition (`type: http`, `scheme: bearer`, `bearerFormat: JWT`). `SwaggerBearerSecurityFilter` adds a matching operation-level requirement to endpoints marked with authorization metadata, including `GET /api/guest-tags`. This documents existing authorization; it does not replace or bypass `[Authorize]`. Public health has no Swagger security requirement.
+
+1. Restart the API and refresh `/swagger/index.html` so the browser loads the current OpenAPI document.
+2. Click **Authorize**, paste only the user session's `access_token` value, then click **Authorize** and **Close**. Do not enter a `Bearer ` prefix yourself; HTTP Bearer handling adds it.
+3. Expand `GET /api/guest-tags`, select **Try it out**, then **Execute**.
+4. The generated request must include `Authorization: Bearer <access_token>`. Check the request headers locally; do not share curl output, screenshots, or logs containing the actual value. Authorization is intentionally not persisted across page reloads, so authorize again after refreshing.
+
+**The connected frontend now implements real Supabase login.** Configure its `.env`, then sign in with your Supabase email/password account. `AuthProvider.tsx` uses the Supabase SDK for sign-in, session persistence, automatic refresh, and local sign-out. The API does not issue its own tokens or provide a password-login endpoint; it validates Supabase tokens. `GET /api/auth/me` returns the authenticated user's ID, display identity, and staff/admin role using the existing server Admin policy. The frontend never derives that role from editable user metadata. A PostgreSQL connection succeeding does not create a user session, and Swagger's Authorize button still accepts an existing token rather than performing login.
+
+For manual Swagger testing, use an existing, authorized Supabase Auth email/password user in the **same project configured as the API issuer**. Create/invite that user through your Supabase Auth administration if needed; your three domain tables do not create Auth users. The connected frontend calls `signInWithPassword({ email, password })`, whose session contains `data.session.access_token`. Do not print the session or token in the console.
+
+Alternatively, in a local API client such as Postman, send `POST https://PROJECT_REF.supabase.co/auth/v1/token?grant_type=password` with `Content-Type: application/json`, an `apikey` header containing the project's publishable/anon key, and a JSON body containing the user's `email` and `password`. Read the returned `access_token` privately and enter it in Swagger. Do not commit the request body, export/share response tokens, or put secrets in shell history. A user must have a valid password and satisfy the project's email confirmation/sign-in policy.
+
+Do not use the refresh token, anon/publishable key, service-role key, database password, or a self-created unsigned JWT as the Swagger Bearer token. Configure `Authentication:Authority` and `Authentication:Audience` to match the token issuer/audience and verify OIDC discovery/signing-key compatibility. Missing/expired/mismatched tokens return 401; an authenticated user without a required admin permission returns 403. The connected frontend attaches current user tokens to .NET API requests and retries once after an SDK session refresh on 401. Swagger requires you to enter a fresh token yourself when it expires.
+
+Browser regression verification uses a synthetic value entered through the actual Authorize dialog. It inspects the generated header and fulfills the guest-tags request locally, without real credentials or a database operation. With temporary Playwright installed in `WeddingSystem/.browser-tools` and a development server at port 5252, run `node WeddingSystem/WeddingSystem.Tests/swagger-bearer.cjs`. The normal .NET suite also checks the generated OpenAPI scheme and guest-tags security requirement.
+
+References: [Supabase password sign-in](https://supabase.com/docs/reference/javascript/auth-signinwithpassword), [Supabase sessions](https://supabase.com/docs/guides/auth/sessions), and [OpenAPI Bearer authentication](https://swagger.io/docs/specification/v3_0/authentication/bearer-authentication/).
 
 ## Endpoints implemented
 
 | Method and path | Access | Behavior |
 | --- | --- | --- |
 | `GET /health` | Public | Process health only; does not test PostgreSQL |
+| `GET /api/auth/me` | Authenticated | Identity and role from server authorization; no database dependency |
 | `GET /api/attendance-statuses` | Staff/admin | Actual lookup IDs and names |
 | `GET /api/guest-tags` | Staff/admin | Relationship lookups |
 | `POST /api/guest-tags` | Admin | Add a relationship |
@@ -188,6 +210,16 @@ Guest edits currently use last-write-wins. Targeted attendance/money updates cha
 
 ## Run and verify
 
+### Connect the frontend through .env
+
+The frontend `.env` is ignored by Git; `WeddingAttendanceSystem/.env.example` is the template. Set `VITE_DATA_SOURCE=api`, `VITE_API_BASE_URL=http://localhost:5247/api`, `VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co`, and `VITE_SUPABASE_PUBLISHABLE_KEY` to the project's public publishable/anon key, then restart Vite. These are browser-visible configuration values. Database passwords and service-role secrets remain backend-only in server configuration.
+
+Start the API with the `http` launch profile and Vite with `npm run dev` from the frontend directory. Open the Vite `localhost` URL so it matches `Cors:AllowedOrigins:0` in backend configuration; add the exact origin if using a different host/port. Do not disable authentication or CORS to fix connection errors. HTTPS API URLs require a trusted certificate and an HTTPS backend profile. Production HTTPS frontends must use an HTTPS API URL.
+
+Connected screens support guest creation/editing, party size, one relationship, table numbers, attendance statuses using actual lookup IDs, server pagination/filters, tag management, and admin-only angpau total replacement. No table capacities, family gifts, multi-tag editing, financial history/voiding, or JSON migration is fabricated. Use `VITE_DATA_SOURCE=local` explicitly to open the original offline demo; it preserves its independent browser dataset.
+
+The browser regression script `WeddingAttendanceSystem/tests/backend-integration.cjs` uses synthetic Supabase and API responses to check sign-in, Bearer headers, numeric request mappings, pagination, guest edits, money, session refresh, staff restrictions, and failure/retry behavior. It requires the temporary Playwright/Edge tooling described in the tests guide and a Vite server on 5174 started with synthetic auth/API addresses (see that guide). It never uses live accounts or a live database. The .NET suite validates `/api/auth/me` against signed test users and the real server policy. Live authentication/database CRUD still require your actual `.env` and server settings.
+
 From the repository root:
 
 ```powershell
@@ -199,6 +231,8 @@ dotnet run --project WeddingSystem/WeddingSystem/WeddingSystem.csproj --launch-p
 
 Development URLs: `http://localhost:5247/health`, `http://localhost:5247/swagger`. HTTPS profile: `https://localhost:7100`. Use `dotnet dev-certs https --trust` if needed for local HTTPS. HTTP is enabled for local development; non-development requests use HTTPS redirection. Configure HTTPS termination/forwarded headers deliberately for a reverse-proxy deployment.
 
+In Development only, `Program.cs` resolves the registered EF Core `WeddingDbContext` inside an asynchronous dependency-injection scope and executes the read-only `SELECT 1` query, with a 10-second cancellation deadline. Only after success does it print exactly `Connection success`. Failure prints `Connection failed`, followed by a fixed, sanitized diagnostic message, and API startup continues. It does not print raw exception messages or connection strings, modify tables, or run migrations. This check confirms connectivity, not table mappings, permissions for guest updates, or ongoing availability; `/health` remains process health only. Production does not execute this startup check.
+
 The isolated test project exercises startup, missing/forged authentication, staff/admin separation, paging and money validation, required money input, Swagger routes, financial DTO exclusion, and offline PostgreSQL mapping. Tests override configuration with a deliberately unreachable database address and test-only JWT keys. They do not prove live database CRUD, references, defaults, decimal round-trips, or cross-device updates; those require a disposable configured PostgreSQL environment.
 
 Publish with `dotnet publish WeddingSystem/WeddingSystem/WeddingSystem.csproj -c Release -o WeddingSystem/publish`. For IIS install the matching ASP.NET Core Hosting Bundle and check the published `web.config` hosting entries. Never publish development credentials or expose the Swagger UI publicly without a deliberate access policy.
@@ -207,7 +241,7 @@ Publish with `dotnet publish WeddingSystem/WeddingSystem/WeddingSystem.csproj -c
 
 Use this prompt for the next backend implementation step:
 
-> Work in the existing WeddingSystem .NET 8 solution. Keep Controllers -> BLO -> DBO -> EF Core 8/Npgsql, with one scoped DbContext per request. Preserve centralized web.config connections/paths through the existing explicit reader and secure local/deployment overrides. First verify actual Supabase schema names, types, lookup IDs, and GuestNum semantics without modifying live records. Keep authentication and admin policies enabled. Use DTOs, reference validation, decimal money, generated IDs/dates, and stable errors. Do not create/seed/migrate the database automatically. Add live CRUD tests only against a disposable database. Extend schema deliberately for gift audit/history, family groups, multiple tags, capacities, and concurrency before claiming those frontend features work. Integrate React through real authentication and HTTP adapters only when the database contract is confirmed; preserve browser JSON backups. Build, run tests, start the API, and report exactly which checks passed and which external configuration is still required.
+> Work in the existing WeddingSystem .NET 8 solution and the connected React frontend. Keep Controllers -> BLO -> DBO -> EF Core 8/Npgsql, with one scoped DbContext per request. Preserve centralized backend web.config connections/paths and frontend .env public settings. Verify actual Supabase schema names, types, lookup IDs, and GuestNum semantics without modifying live records. Preserve Supabase SDK authentication, server-controlled /api/auth/me roles, Bearer HTTP requests, and API failure handling. Use DTOs, reference validation, decimal money, generated IDs/dates, and stable errors. Do not create/seed/migrate the database automatically. Add live CRUD tests only against a disposable database. Extend schema deliberately for gift audit/history, family groups, multiple tags, capacities, and concurrency before claiming those frontend features work. Preserve independent local-demo browser records and never fall back to them on API failure. Build, run relevant tests, and report exactly which checks passed and which external configuration is still required.
 
 ## References
 

@@ -7,6 +7,7 @@ import {
   faUser,
   faTableCells,
 } from "@fortawesome/free-solid-svg-icons";
+import { isApiMode } from "../config";
 const tabs = [
   { to: "/admin/dashboard", label: "Nav.Dashboard" as const, icon: faChartPie },
   { to: "/admin/tag", label: "Nav.Tags" as const, icon: faTag },
@@ -22,7 +23,7 @@ export function NavTag() {
 
   return (
     <nav className="admin-nav" aria-label={t("Nav.AdminNavigation")}>
-      {tabs.map((tab) => (
+      {tabs.filter(tab => !isApiMode || tab.to !== "/admin/table-setting").map((tab) => (
         <NavLink
           key={tab.to}
           to={tab.to}

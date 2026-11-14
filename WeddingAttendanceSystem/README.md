@@ -2,6 +2,8 @@
 
 React + TypeScript + Vite implementation of the latest standalone wedding template. The reference HTML/CSS/JavaScript in `template/` is retained unchanged.
 
+The default application mode now uses the .NET API and Supabase Auth. Fill in `.env` using `.env.example`, start the API, then run Vite. See the repository [README](../README.md) and [backend guide](../backend.md) for the current connected setup. The historical storage/migration notes below describe the browser-only demo, available explicitly with `VITE_DATA_SOURCE=local`; API failures never fall back to that dataset.
+
 ## Run
 
 From this directory:

@@ -23,6 +23,7 @@ import {
   timeNow,
 } from "../utils/format";
 import { tableUsage } from "../utils/selectors";
+import { isApiMode } from "../config";
 
 function validateGuest(s: WeddingState, draft: GuestDraft) {
   if (!draft.name.trim()) throw new AppError("Errors.GuestNameRequired");
@@ -162,6 +163,9 @@ interface WeddingContextValue {
 }
 export const WeddingContext = createContext<WeddingContextValue | null>(null);
 export function WeddingProvider({ children }: { children: ReactNode }) {
+  return isApiMode ? children : <LocalWeddingProvider>{children}</LocalWeddingProvider>;
+}
+function LocalWeddingProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const [error, setError] = useState<Message | undefined>(() => {
     try {

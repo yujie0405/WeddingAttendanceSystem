@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -93,6 +94,27 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     }
 
     [Theory]
+    [InlineData("staff", "staff")]
+    [InlineData("test-admin", "admin")]
+    public async Task CurrentUserUsesServerAuthorizationPolicy(string subject, string expectedRole)
+    {
+        using var client = factory.Authenticated(subject);
+        var result = await client.GetAsync("/api/auth/me");
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        using var document = JsonDocument.Parse(await result.Content.ReadAsStringAsync());
+        Assert.Equal(subject, document.RootElement.GetProperty("id").GetString());
+        Assert.Equal(expectedRole, document.RootElement.GetProperty("role").GetString());
+        Assert.False(document.RootElement.TryGetProperty("access_token", out _));
+    }
+
+    [Fact]
+    public async Task CurrentUserRejectsAnonymousRequests()
+    {
+        using var client = factory.CreateClient();
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/me")).StatusCode);
+    }
+
+    [Theory]
     [InlineData(-1)]
     [InlineData(0)]
     [InlineData(101)]
@@ -129,6 +151,24 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var json = await client.GetStringAsync("/swagger/v1/swagger.json");
         Assert.Contains("/api/guests", json);
         Assert.DoesNotContain("WeatherForecast", json);
+    }
+
+    [Fact]
+    public async Task SwaggerGuestTagsRequiresTheDefinedHttpBearerScheme()
+    {
+        using var client = factory.CreateClient();
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/swagger/v1/swagger.json"));
+        var root = document.RootElement;
+        var scheme = root.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
+        Assert.Equal("http", scheme.GetProperty("type").GetString());
+        Assert.Equal("bearer", scheme.GetProperty("scheme").GetString());
+        Assert.Equal("JWT", scheme.GetProperty("bearerFormat").GetString());
+        var operation = root.GetProperty("paths").GetProperty("/api/guest-tags").GetProperty("get");
+        Assert.Equal(0, operation.GetProperty("security")[0].GetProperty("Bearer").GetArrayLength());
+        Assert.True(operation.GetProperty("responses").TryGetProperty("401", out _));
+        Assert.True(operation.GetProperty("responses").TryGetProperty("403", out _));
+        var health = root.GetProperty("paths").GetProperty("/health").GetProperty("get");
+        Assert.True(!health.TryGetProperty("security", out var security) || security.GetArrayLength() == 0);
     }
 
     [Fact]
