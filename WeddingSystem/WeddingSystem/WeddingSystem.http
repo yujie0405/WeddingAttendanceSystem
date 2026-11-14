@@ -1,0 +1,41 @@
+﻿@host = http://localhost:5247
+@accessToken = REPLACE_WITH_SUPABASE_AUTH_ACCESS_TOKEN
+
+GET {{host}}/health
+Accept: application/json
+
+### Lookup the actual status IDs
+GET {{host}}/api/attendance-statuses
+Authorization: Bearer {{accessToken}}
+
+### Guest list excludes financial amounts
+GET {{host}}/api/guests?page=1&pageSize=20
+Authorization: Bearer {{accessToken}}
+
+### Administrator only; relationship/status IDs are examples
+POST {{host}}/api/guests
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "guestName": "Alex Tan",
+  "relationId": 1,
+  "weddingSide": 1,
+  "guestNum": 1,
+  "attendanceStatusId": 1,
+  "tableNumber": 5
+}
+
+### Set explicit attendance status
+PUT {{host}}/api/guests/1/attendance
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "attendanceStatusId": 2 }
+
+### Administrator only: replaces a total, never adds another gift
+PUT {{host}}/api/admin/guests/1/angpau
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "amount": 200.00 }

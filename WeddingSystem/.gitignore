@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+.vs/
+publish/
+*.user
+**/App_Data/
+**/web.Local.config

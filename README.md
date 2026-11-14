@@ -2,7 +2,7 @@
 
 A bilingual wedding reception app for managing guest arrivals, seating assignments, and angpau (cash wedding gifts). Reception staff can find guests and check them in, while administrators can prepare guest records, manage tables and tags, and review gift totals and history.
 
-The application uses React, TypeScript, and Vite. Records are saved in the browser using `localStorage`; there is no server API or database. It currently uses demo authentication and comes with sample wedding data.
+The frontend uses React, TypeScript, and Vite. It currently saves records in browser `localStorage`, uses demo authentication, and comes with sample wedding data. A separate .NET 8 API is implemented under `WeddingSystem/` with Controller -> BLO -> DBO layers and EF Core PostgreSQL mappings. Supabase configuration and frontend API integration are still required; see [the backend guide](backend.md).
 
 ## Contents
 
@@ -296,6 +296,7 @@ Hosting changes the address where the app runs, but saved records remain in each
 
 ## Further documentation
 
+- [Backend setup, configuration, and continuation prompt](backend.md)
 - [Application implementation notes](WeddingAttendanceSystem/README.md)
 - [Data transfer and migration guide](WeddingAttendanceSystem/DATA-MIGRATION.md)
 - [Browser test setup and coverage](WeddingAttendanceSystem/tests/README.md)
