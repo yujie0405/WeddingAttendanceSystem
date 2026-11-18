@@ -40,8 +40,8 @@ public sealed class GuestDBO(WeddingDbContext db)
     public Task<int> SetAngpauAsync(int id, decimal amount, CancellationToken ct) => db.Guests.Where(g => g.Id == id)
         .ExecuteUpdateAsync(s => s.SetProperty(g => g.Angpau, amount), ct);
     public Task<AngpauResponse?> ReadAngpauAsync(int id, CancellationToken ct) => db.Guests.AsNoTracking()
-        .Where(g => g.Id == id).Select(g => new AngpauResponse(g.Id, g.Angpau)).SingleOrDefaultAsync(ct);
-    public Task<decimal> AngpauTotalAsync(CancellationToken ct) => db.Guests.SumAsync(g => g.Angpau, ct);
+        .Where(g => g.Id == id).Select(g => new AngpauResponse(g.Id, g.Angpau ?? 0m)).SingleOrDefaultAsync(ct);
+    public async Task<decimal> AngpauTotalAsync(CancellationToken ct) => await db.Guests.SumAsync(g => g.Angpau, ct) ?? 0m;
     public async Task<AttendanceSummary> SummaryAsync(int arrived, CancellationToken ct)
     {
         var result = await db.Guests.AsNoTracking().GroupBy(g => 1).Select(rows => new AttendanceSummary(

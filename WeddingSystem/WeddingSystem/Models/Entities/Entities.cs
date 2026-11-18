@@ -23,7 +23,7 @@ public sealed class GuestEntity
     public int GuestNum { get; set; }
     public int AttendanceStatusId { get; set; }
     public int? TableNumber { get; set; }
-    public decimal Angpau { get; set; }
+    public decimal? Angpau { get; set; }
     public DateTime CreatedDate { get; set; }
     public GuestTagEntity Relation { get; set; } = null!;
     public AttendanceStatusEntity Attendance { get; set; } = null!;

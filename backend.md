@@ -1,5 +1,7 @@
 ﻿# WeddingSystem backend: .NET 8 implementation and continuation prompt
 
+**Authentication update:** registration and login now use the `User.Password` hash through `/api/auth/register` and `/api/auth/login`. The API issues local signed tokens using server-only `Authentication:SigningKey`; it no longer accepts Supabase session tokens. Existing accounts with null hashes migrate only after successful Supabase password verification. New registrations do not send confirmation emails. The earlier Supabase frontend login instructions below are historical; use [database login setup](WeddingSystem/WeddingSystem/Database/README.md) for current authentication configuration.
+
 The backend now lives in `WeddingSystem/WeddingSystem/`, with solution `WeddingSystem/WeddingSystem.sln`. It uses ASP.NET Core 8 controllers, EF Core 8, and the Npgsql PostgreSQL provider. This document replaces the previous .NET Framework 4.8/EF6 instructions. The existing React app remains separate.
 
 The code provides guest creation/editing, lookup management, explicit attendance updates, attendance summaries, and administrator-only angpau total updates. Database integration is not verified until actual Supabase credentials and schema are configured. Nothing creates, seeds, drops, or migrates tables automatically.
@@ -58,6 +60,10 @@ Do not add `Global.asax`, `App_Start`, EF6, `EntityFramework6.Npgsql`, `System.W
 
 The WeatherForecast sample, unused Windows Dockerfile/container profile, and Visual Studio container-tools dependency have been removed. Swagger, HTTP/HTTPS/IIS Express profiles, user-secrets support, and application logging settings remain useful. Ignore `.vs`, `bin`, `obj`, `.user`, and local configuration files rather than deleting IDE state while Visual Studio is open.
 
+## Supabase SDK configuration
+
+The backend registers Supabase 8.12 through `AddSupabase` using `Supabase:Url` and `Supabase:Key` in `WeddingSystem/WeddingSystem/appsettings.json`. The SDK Auth client is used only for migrating existing null-password accounts. New registration and login use the User table; JWT validation uses the local issuer and signing key. The SDK does not replace `ConnectionStrings:WeddingDb` for EF Core queries. See [registration setup](WeddingSystem/WeddingSystem/Database/README.md) for the User table script.
+
 ## Configuration in web.config
 
 Your preference for centralizing backend database connections, paths, and service addresses in `web.config` is retained. ASP.NET Core does not automatically read legacy `<connectionStrings>` and `<appSettings>` sections, so `Configuration/WebConfigSettings.cs` explicitly loads them into `IConfiguration` at startup. `Program.cs` invokes this reader before registering services.
@@ -73,7 +79,7 @@ The checked-in file contains placeholders. Supply real values locally, without c
   </connectionStrings>
   <appSettings>
     <add key="Cors:AllowedOrigins:0" value="http://localhost:5173" />
-    <add key="Authentication:Authority" value="https://PROJECT_REF.supabase.co/auth/v1" />
+    <!-- Supabase:Url and Supabase:Key are configured in appsettings.json. -->
     <add key="Authentication:Audience" value="authenticated" />
     <add key="Authentication:AdminUserIds" value="ADMIN_USER_UUID" />
     <add key="Attendance:ArrivedStatusId" value="ACTUAL_ARRIVED_STATUS_ID" />
@@ -154,7 +160,7 @@ For manual Swagger testing, use an existing, authorized Supabase Auth email/pass
 
 Alternatively, in a local API client such as Postman, send `POST https://PROJECT_REF.supabase.co/auth/v1/token?grant_type=password` with `Content-Type: application/json`, an `apikey` header containing the project's publishable/anon key, and a JSON body containing the user's `email` and `password`. Read the returned `access_token` privately and enter it in Swagger. Do not commit the request body, export/share response tokens, or put secrets in shell history. A user must have a valid password and satisfy the project's email confirmation/sign-in policy.
 
-Do not use the refresh token, anon/publishable key, service-role key, database password, or a self-created unsigned JWT as the Swagger Bearer token. Configure `Authentication:Authority` and `Authentication:Audience` to match the token issuer/audience and verify OIDC discovery/signing-key compatibility. Missing/expired/mismatched tokens return 401; an authenticated user without a required admin permission returns 403. The connected frontend attaches current user tokens to .NET API requests and retries once after an SDK session refresh on 401. Swagger requires you to enter a fresh token yourself when it expires.
+Do not use the refresh token, anon/publishable key, service-role key, database password, or a self-created unsigned JWT as the Swagger Bearer token. Configure `Supabase:Url` and `Authentication:Audience` to match the token issuer/audience and verify OIDC discovery/signing-key compatibility. Missing/expired/mismatched tokens return 401; an authenticated user without a required admin permission returns 403. The connected frontend attaches current user tokens to .NET API requests and retries once after an SDK session refresh on 401. Swagger requires you to enter a fresh token yourself when it expires.
 
 Browser regression verification uses a synthetic value entered through the actual Authorize dialog. It inspects the generated header and fulfills the guest-tags request locally, without real credentials or a database operation. With temporary Playwright installed in `WeddingSystem/.browser-tools` and a development server at port 5252, run `node WeddingSystem/WeddingSystem.Tests/swagger-bearer.cjs`. The normal .NET suite also checks the generated OpenAPI scheme and guest-tags security requirement.
 

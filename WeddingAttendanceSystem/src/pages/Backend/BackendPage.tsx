@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { backend } from "../../api/backend";
-import type { ApiGuest, GuestInput, GuestPage, Lookup } from "../../api/backend";
+import type { ApiGuest, ApiTable, GuestInput, GuestPage, Lookup } from "../../api/backend";
 import { AppError } from "../../i18n/messages";
 import type { TranslationKey } from "../../i18n/messages";
 import { useAuth } from "../../hooks/useAuth";
@@ -10,7 +9,7 @@ import { Modal } from "../../component/Modal";
 import { LocalizedForm } from "../../component/LocalizedForm";
 import { formatRM } from "../../utils/format";
 
-type Mode = "checkin" | "guests" | "tags" | "gifts" | "tables";
+type Mode = "checkin" | "guests" | "gifts";
 const emptyPage: GuestPage = { items: [], page: 1, pageSize: 20, totalCount: 0 };
 const failure = (error: unknown): TranslationKey => error instanceof AppError ? error.key : "Backend.RequestFailed";
 
@@ -20,6 +19,7 @@ export function BackendPage({ mode }: { mode: Mode }) {
   const [rows, setRows] = useState<GuestPage>(emptyPage);
   const [tags, setTags] = useState<Lookup[]>([]);
   const [statuses, setStatuses] = useState<Lookup[]>([]);
+  const [tables, setTables] = useState<ApiTable[]>([]);
   const [search, setSearch] = useState("");
   const [side, setSide] = useState("");
   const [status, setStatus] = useState("");
@@ -32,13 +32,12 @@ export function BackendPage({ mode }: { mode: Mode }) {
   const [error, setError] = useState<TranslationKey>();
   const [saved, setSaved] = useState(false);
   const [edit, setEdit] = useState<ApiGuest>();
-  const [newTag, setNewTag] = useState("");
   const [amounts, setAmounts] = useState<Record<number, number>>({});
   const [total, setTotal] = useState<number | undefined>();
   const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
-    if (!user || mode === "tables") { setLoading(false); return; }
+    if (!user) { setLoading(false); return; }
     const controller = new AbortController();
     const signal = controller.signal;
     setLoading(true);
@@ -50,12 +49,14 @@ export function BackendPage({ mode }: { mode: Mode }) {
     if (relation) query.set("relationId", relation);
     if (table) query.set("tableNumber", table);
     void (async () => {
-      const [nextTags, nextStatuses, nextRows] = await Promise.all([
+      const [nextTags, nextStatuses, nextRows, nextTables] = await Promise.all([
         backend.tags(signal), backend.statuses(signal),
-        mode === "tags" ? Promise.resolve(emptyPage) : backend.guests(query, signal),
+        backend.guests(query, signal),
+        backend.tables(signal),
       ]);
       if (signal.aborted) return;
       setTags(nextTags); setStatuses(nextStatuses); setRows(nextRows);
+      setTables(nextTables);
       if (mode === "gifts") {
         const [money, sum] = await Promise.all([
           Promise.all(nextRows.items.map(guest => backend.money(guest.id, signal))), backend.total(signal),
@@ -84,11 +85,7 @@ export function BackendPage({ mode }: { mode: Mode }) {
     finally { setSaving(false); }
   };
   const changeFilter = (update: (value: string) => void, value: string) => { update(value); setPage(1); setSaved(false); };
-  const title = mode === "tags" ? t("Nav.Tags") : mode === "gifts" ? t("Nav.Dashboard") : mode === "guests" ? t("Nav.Guests") : t("Nav.Home");
-
-  if (mode === "tables") return <section className="admin-section">
-    <p>{t("Backend.TableHelp")}</p><Link to="/admin/add-guest">{t("Nav.Guests")}</Link>
-  </section>;
+  const title = mode === "gifts" ? t("Nav.Dashboard") : mode === "guests" ? t("Nav.Guests") : t("Nav.Home");
 
   return <div className="wedding-space-y-4">
     <div className="admin-section-heading">
@@ -101,24 +98,10 @@ export function BackendPage({ mode }: { mode: Mode }) {
     {saved && <p role="status">{t("Backend.Saved")}</p>}
     {loading && <p role="status">{t("Backend.Loading")}</p>}
 
-    {mode === "tags" ? <section className="admin-section">
-      <LocalizedForm onSubmit={async event => {
-        event.preventDefault();
-        await perform(() => backend.addTag(newTag.trim()), () => setNewTag(""));
-      }}>
-        <label className="admin-label">{t("Admin.Tags.NewName")}<input className="admin-input" required maxLength={100} value={newTag} onChange={event => setNewTag(event.target.value)} /></label>
-        <button className="admin-primary-button" disabled={saving || loading}>{t("Admin.Tags.Add")}</button>
-      </LocalizedForm>
-      <ul>{tags.map(tag => <li key={tag.id} className="admin-row-actions">
-        <span>{tag.name}</span>
-        <button type="button" className="admin-danger-button" disabled={saving || loading} onClick={() => {
-          if (confirm(t("Admin.Tags.DeleteConfirmation", { name: tag.name }))) void perform(() => backend.deleteTag(tag.id));
-        }}>{t("Common.Delete")}</button>
-      </li>)}</ul>
-    </section> : <>
+    <>
       {mode === "guests" && <section className="admin-section">
         <h3>{t("Backend.NewGuest")}</h3>
-        <GuestForm key={formKey} tags={tags} statuses={statuses} disabled={saving || loading} onSave={input => perform(() => backend.saveGuest(input), () => { setFormKey(key => key + 1); setPage(1); })} />
+        <GuestForm key={formKey} tags={tags} statuses={statuses} tables={tables} disabled={saving || loading} onSave={input => perform(() => backend.saveGuest(input), () => { setFormKey(key => key + 1); setPage(1); })} />
       </section>}
       {mode === "gifts" && <section className="admin-section">
         <h3>{t("Backend.SummaryTotal")}</h3>
@@ -137,7 +120,10 @@ export function BackendPage({ mode }: { mode: Mode }) {
           <select aria-label={t("Backend.Relationship")} className="admin-input" value={relation} onChange={event => changeFilter(setRelation, event.target.value)}>
             <option value="">{t("Backend.AllRelationships")}</option>{tags.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}
           </select>
-          <label className="admin-label">{t("Common.Table")}<input type="number" min="1" step="1" className="admin-input" value={table} onChange={event => changeFilter(setTable, event.target.value)} /></label>
+          <label className="admin-label">{t("Common.Table")}<select className="admin-input" value={table} onChange={event => changeFilter(setTable, event.target.value)}>
+            <option value="">{t("Backend.AllTables")}</option>
+            {tables.map(item => <option key={item.tableNumber} value={item.tableNumber}>{t("Common.TableNumber", { table: item.tableNumber })}</option>)}
+          </select></label>
         </div>
         <p>{t("Backend.Records", { count: rows.totalCount })}</p>
         {!loading && !error && !rows.items.length && <p>{t("Backend.Empty")}</p>}
@@ -162,16 +148,16 @@ export function BackendPage({ mode }: { mode: Mode }) {
           <button type="button" disabled={loading || saving || page * rows.pageSize >= rows.totalCount} onClick={() => setPage(value => value + 1)}>{t("Backend.Next")}</button>
         </div>
       </section>
-    </>}
+    </>
     {edit && <Modal title={t("Backend.EditGuest")} onClose={() => { if (!saving) setEdit(undefined); }} wide>
-      <GuestForm initial={edit} tags={tags} statuses={statuses} disabled={saving} onSave={input => perform(() => backend.saveGuest(input, edit.id), () => setEdit(undefined))} />
+      <GuestForm initial={edit} tags={tags} statuses={statuses} tables={tables} disabled={saving} onSave={input => perform(() => backend.saveGuest(input, edit.id), () => setEdit(undefined))} />
       {error && <p role="alert">{t(error)}</p>}
     </Modal>}
   </div>;
 }
 
-function GuestForm({ initial, tags, statuses, disabled, onSave }: {
-  initial?: ApiGuest; tags: Lookup[]; statuses: Lookup[]; disabled: boolean;
+function GuestForm({ initial, tags, statuses, tables, disabled, onSave }: {
+  initial?: ApiGuest; tags: Lookup[]; statuses: Lookup[]; tables: ApiTable[]; disabled: boolean;
   onSave: (input: GuestInput) => Promise<void>;
 }) {
   const { t } = useTranslation();
@@ -179,7 +165,7 @@ function GuestForm({ initial, tags, statuses, disabled, onSave }: {
   const [relation, setRelation] = useState(initial ? String(initial.relationId) : "");
   const [side, setSide] = useState(String(initial?.weddingSide || 1));
   const [count, setCount] = useState(String(initial?.guestNum || 1));
-  const [status, setStatus] = useState(initial ? String(initial.attendanceStatusId) : "");
+  const [status, setStatus] = useState(initial ? String(initial.attendanceStatusId) : "1");
   const [table, setTable] = useState(initial?.tableNumber?.toString() || "");
   return <LocalizedForm className="wedding-space-y-3" onSubmit={async event => {
     event.preventDefault();
@@ -194,13 +180,18 @@ function GuestForm({ initial, tags, statuses, disabled, onSave }: {
       <label className="admin-label">{t("Common.Side")}<select aria-label={t("Common.Side")} className="admin-input" value={side} onChange={event => setSide(event.target.value)}>
         <option value="1">{t("Common.Groom")}</option><option value="2">{t("Common.Bride")}</option>
       </select></label>
-      <label className="admin-label">{t("Backend.GuestNum")}<input type="number" className="admin-input" min="1" step="1" max="2147483647" required value={count} onChange={event => setCount(event.target.value)} /></label>
+      <label className="admin-label">{t("Backend.GuestNum")}<input type="number" className="admin-input" min="1" step="1" max="32767" required value={count} onChange={event => setCount(event.target.value)} /></label>
       <label className="admin-label">{t("Backend.Attendance")}<select aria-label={t("Backend.Attendance")} className="admin-input" required value={status} onChange={event => setStatus(event.target.value)}>
         <option value="" disabled>{t("Backend.Select")}</option>{statuses.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}
       </select></label>
-      <label className="admin-label">{t("Common.Table")}<input type="number" className="admin-input" min="1" step="1" max="2147483647" value={table} onChange={event => setTable(event.target.value)} /></label>
+      <label className="admin-label">{t("Common.Table")}<select className="admin-input" value={table} onChange={event => setTable(event.target.value)}>
+        <option value="">{t("Backend.Unassigned")}</option>
+        {tables.map(item => <option key={item.tableNumber} value={item.tableNumber}>{t("Common.TableNumber", { table: item.tableNumber })}</option>)}
+      </select></label>
     </fieldset>
-    <button className="admin-primary-button" disabled={disabled || !tags.length || !statuses.length}>{t(disabled ? "Backend.PendingWrite" : "Backend.Save")}</button>
+    {!disabled && !tags.length && <p className="admin-help">{t("Backend.AddTagFirst")}</p>}
+    {!disabled && !initial && !statuses.some(item => item.id === 1) && <p role="alert">{t("Backend.DefaultStatusMissing")}</p>}
+    <button className="admin-primary-button" disabled={disabled || !tags.length || !statuses.length || !statuses.some(item => String(item.id) === status)}>{t(disabled ? "Backend.PendingWrite" : "Backend.Save")}</button>
   </LocalizedForm>;
 }
 

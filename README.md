@@ -2,7 +2,7 @@
 
 A bilingual wedding reception app for managing guest arrivals, seating assignments, and angpau (cash wedding gifts). Reception staff can find guests and check them in, while administrators can prepare guest records, manage tables and tags, and review gift totals and history.
 
-The React/TypeScript frontend now connects to the .NET 8 API under `WeddingSystem/`, using Supabase Auth user sessions and Bearer-authenticated requests. Configure the public frontend connection settings in `WeddingAttendanceSystem/.env`. The API uses Controller -> BLO -> DBO layers and EF Core PostgreSQL mappings; database credentials stay on the backend. The original browser-only demo remains available through `VITE_DATA_SOURCE=local`.
+The React/TypeScript frontend now connects to the .NET 8 API under `WeddingSystem/`, using backend database password login and Bearer-authenticated requests. Configure the public frontend connection settings in `WeddingAttendanceSystem/.env`. The API uses Controller -> BLO -> DBO layers and EF Core PostgreSQL mappings; database credentials stay on the backend. The original browser-only demo remains available through `VITE_DATA_SOURCE=local`.
 
 ## Contents
 
@@ -20,7 +20,7 @@ The React/TypeScript frontend now connects to the .NET 8 API under `WeddingSyste
 
 ## Features
 
-**Connected API mode (default):** Supabase email/password login, server-controlled roles, guest creation/editing, party size, one relationship per guest, table numbers, attendance status changes, server pagination/search/filters, relationship management, and admin-only angpau totals. Family groups, multiple tags, table capacities, gift history/voiding, and JSON import/export remain available only in the local demo until the server schema is extended. Existing browser records are preserved, not imported or uploaded automatically.
+**Connected API mode (default):** Database email/password registration and login, server-controlled roles, guest creation/editing, party size, one relationship per guest, table numbers, attendance status changes, server pagination/search/filters, relationship management, and admin-only angpau totals. Family groups, multiple tags, table capacities, gift history/voiding, and JSON import/export remain available only in the local demo until the server schema is extended. Existing browser records are preserved, not imported or uploaded automatically.
 
 The feature table and detailed reception manual below describe the original local demo. Connected mode presents only the supported server workflows; it never falls back to demo data on API failure.
 
@@ -52,11 +52,9 @@ For connected mode, fill in `WeddingAttendanceSystem/.env` (already created loca
 ```dotenv
 VITE_DATA_SOURCE=api
 VITE_API_BASE_URL=http://localhost:5247/api
-VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLIC_PUBLISHABLE_OR_ANON_KEY
 ```
 
-Never put a PostgreSQL password, connection string, service-role key, or user access token in a `VITE_` variable; these values are delivered to browsers. Restart Vite after editing `.env`. The Supabase URL must identify the same project configured in the backend's `Authentication:Authority`. Keep `Authentication:AdminUserIds` and `ConnectionStrings:WeddingDb` on the backend; see [backend.md](backend.md).
+Never put a PostgreSQL password, connection string, service-role key, or user access token in a `VITE_` variable; these values are delivered to browsers. Restart Vite after editing `.env`. Configure database login and a private signing key using the [database login setup](WeddingSystem/WeddingSystem/Database/README.md). Keep `Authentication:AdminUserIds` and `ConnectionStrings:WeddingDb` on the backend; see [backend.md](backend.md).
 
 Start the backend in one terminal, from the repository root:
 
@@ -80,7 +78,7 @@ The React app must run through Vite or a web server. Opening its `index.html` di
 
 ### First launch and demo accounts
 
-**Connected mode:** sign in with an existing Supabase Auth email/password account. The Supabase SDK manages session persistence, refresh, and local logout; the frontend sends the current access token to the API. `/api/auth/me` supplies the role from backend authorization. Accounts containing `admin` in their name receive no special access. Missing connection settings show configuration guidance; unreachable or unauthorized APIs show errors and retry controls.
+**Connected mode:** register on the login page, then sign in with email/password. The backend verifies the hash in `User.Password` and issues an eight-hour token. The frontend stores it for the current tab and includes it in API requests. Existing Supabase accounts migrate their password on the first successful login. `/api/auth/me` supplies the role from backend authorization; account names never grant administrator access. New registrations do not send confirmation emails.
 
 **Local demo only:** set `VITE_DATA_SOURCE=local` in `.env` and restart Vite to use the sample records and demo accounts described below. Local records and real API records are independent.
 
@@ -251,7 +249,7 @@ The main domain records are guests, family groups, tags, tables, and angpau reco
 
 ## Data storage and recovery
 
-This section describes the local demo dataset. In API mode, wedding records live in PostgreSQL and are refetched after mutations, on window focus, or through Refresh. There is no silent local-data fallback or automatic JSON migration. Browser storage is still used by Supabase Auth for its session and by the app for language preference; sign out on shared devices.
+This section describes the local demo dataset. In API mode, wedding records live in PostgreSQL and are refetched after mutations, on window focus, or through Refresh. There is no silent local-data fallback or automatic JSON migration. Tab session storage holds the backend access token; browser local storage holds the language preference; sign out on shared devices.
 
 | Storage key | Contents |
 | --- | --- |

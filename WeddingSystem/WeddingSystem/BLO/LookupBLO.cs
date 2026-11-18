@@ -22,7 +22,7 @@ public sealed class LookupBLO(LookupDBO lookups)
     public async Task DeleteTagAsync(int id, CancellationToken ct)
     {
         var tag = await lookups.FindTagAsync(id, ct) ?? throw new ApiException(404, "TAG_NOT_FOUND", "Tag not found.");
-        if (await lookups.TagUsedAsync(id, ct)) throw new ApiException(409, "TAG_IN_USE", "Reassign guests before deleting this tag.");
+        if (await lookups.TagUsedAsync(id, ct)) throw new ApiException(409, "TAG_IN_USE", "Reassign guests or tables before deleting this tag.");
         lookups.DeleteTag(tag);
         await lookups.SaveAsync(ct);
     }

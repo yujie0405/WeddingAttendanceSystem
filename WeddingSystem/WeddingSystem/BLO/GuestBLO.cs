@@ -59,6 +59,8 @@ public sealed class GuestBLO(GuestDBO guests, LookupDBO lookups, IConfiguration 
     }
     private async Task ValidateAsync(GuestWriteRequest request, CancellationToken ct)
     {
+        if (request.TableNumber is { } number && !await lookups.TableExistsAsync(number, ct))
+            throw new ApiException(400, "INVALID_TABLE", "Select an existing table.");
         if (string.IsNullOrWhiteSpace(request.GuestName))
             throw new ApiException(400, "INVALID_NAME", "Enter a guest name.");
         if (!await lookups.TagExistsAsync(request.RelationId, ct))

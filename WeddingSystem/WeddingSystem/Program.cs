@@ -8,14 +8,42 @@ using WeddingSystem.Configuration;
 using WeddingSystem.DBO;
 using WeddingSystem.DBO.Context;
 using WeddingSystem.Infrastructure;
+using Supabase.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
+using System.Threading.RateLimiting;
+using WeddingSystem.Models.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddWebConfigDefaults();
+// Support the connection name already used by local .NET user-secrets.
+if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("WeddingDb")))
+    builder.Configuration["ConnectionStrings:WeddingDb"] = builder.Configuration.GetConnectionString("DefaultConnection");
 // Keep startup independent of Windows Event Log write permissions.
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 builder.Services.AddControllers();
+builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher<UserEntity>>();
+builder.Services.Configure<PasswordHasherOptions>(options => options.IterationCount = 210000);
+builder.Services.AddScoped<LoginTokens>();
+builder.Services.AddScoped<ILegacyPasswordVerifier, LegacyPasswordVerifier>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 15, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+});
+var supabaseUrl = builder.Configuration["Supabase:Url"]?.TrimEnd('/');
+var supabaseKey = builder.Configuration["Supabase:Key"];
+if (!Uri.TryCreate(supabaseUrl, UriKind.Absolute, out var supabaseUri) || supabaseUri.Scheme != "https" || string.IsNullOrWhiteSpace(supabaseKey))
+    throw new InvalidOperationException("Configure a valid HTTPS Supabase:Url and Supabase:Key.");
+builder.Services.AddSupabase(supabaseUrl!, supabaseKey, options =>
+{
+    // Each HTTP request has its own client; the browser owns persistent login sessions.
+    options.AutoRefreshToken = false;
+    options.AutoConnectRealtime = false;
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddEndpointsApiExplorer();
@@ -28,8 +56,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
-        Description = "Paste only the Supabase user session access_token, without the Bearer prefix. " +
-            "Swagger adds Authorization: Bearer <access_token>. The connected frontend signs in through Supabase Auth."
+        Description = "Paste the accessToken returned by POST /api/auth/login. Swagger adds the Bearer prefix."
     });
     options.OperationFilter<SwaggerBearerSecurityFilter>();
 });
@@ -44,6 +71,8 @@ builder.Services.AddScoped<GuestDBO>();
 builder.Services.AddScoped<LookupDBO>();
 builder.Services.AddScoped<GuestBLO>();
 builder.Services.AddScoped<LookupBLO>();
+builder.Services.AddScoped<TableDBO>();
+builder.Services.AddScoped<TableBLO>();
 var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
@@ -52,14 +81,16 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
     options.MapInboundClaims = false;
-    var authority = builder.Configuration["Authentication:Authority"];
-    if (!string.IsNullOrWhiteSpace(authority)) options.Authority = authority;
-    options.Audience = builder.Configuration["Authentication:Audience"] ?? "authenticated";
+    options.Audience = LoginTokens.Audience;
     options.RequireHttpsMetadata = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true, ValidateAudience = true, ValidateLifetime = true,
         ValidateIssuerSigningKey = true, RequireSignedTokens = true,
+        ValidIssuer = LoginTokens.Issuer,
+        ValidAudience = LoginTokens.Audience,
+        IssuerSigningKey = LoginTokens.SigningKey(builder.Configuration),
+        ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
         ClockSkew = TimeSpan.FromSeconds(30)
     };
 });
@@ -69,8 +100,13 @@ builder.Services.AddAuthorization(options =>
         if (context.Resource is not HttpContext http || context.User.FindFirst("sub") is not { } subject)
             return false;
         var configured = http.RequestServices.GetRequiredService<IConfiguration>()["Authentication:AdminUserIds"] ?? "";
-        return configured.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Contains(subject.Value, StringComparer.Ordinal);
+        if (configured.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Contains(subject.Value, StringComparer.Ordinal)) return true;
+        // Email is issued by this backend from the database after password verification.
+        var email = context.User.FindFirst("email")?.Value;
+        var adminEmails = http.RequestServices.GetRequiredService<IConfiguration>()["Authentication:AdminEmails"] ?? "";
+        return email is not null && adminEmails.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Contains(email, StringComparer.OrdinalIgnoreCase);
     })));
 
 var app = builder.Build();
@@ -113,6 +149,7 @@ if (app.Environment.IsDevelopment())
 }
 if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "WeddingSystem" })).AllowAnonymous();

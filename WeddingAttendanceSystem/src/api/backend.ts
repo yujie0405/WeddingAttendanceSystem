@@ -21,9 +21,13 @@ export interface GuestInput {
   tableNumber: number | null;
 }
 export interface Lookup { id: number; name: string }
+export interface ApiTable { tableNumber: number; capacity: number; assignedCount: number; guestTagId: number | null }
 export interface GuestPage { items: ApiGuest[]; page: number; pageSize: number; totalCount: number }
 export interface Money { guestId: number; amount: number }
 export const backend = {
+  tables: (signal?: AbortSignal) => apiRequest<ApiTable[]>("/tables", { signal }),
+  addTable: (tableNumber: number, capacity: number, guestTagId: number | null) => apiRequest<ApiTable>("/tables", { method: "POST", body: JSON.stringify({ tableNumber, capacity, guestTagId }) }),
+  deleteTable: (number: number) => apiRequest<void>(`/tables/${number}`, { method: "DELETE" }),
   guests: (query: URLSearchParams, signal?: AbortSignal) => apiRequest<GuestPage>(`/guests?${query}`, { signal }),
   tags: (signal?: AbortSignal) => apiRequest<Lookup[]>("/guest-tags", { signal }),
   statuses: (signal?: AbortSignal) => apiRequest<Lookup[]>("/attendance-statuses", { signal }),

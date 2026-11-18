@@ -65,6 +65,9 @@ body {
 .admin-table-card {
   min-width: 0;
 }
+.table-tag-field {
+  grid-column: 1 / -1;
+}
 .admin-table-card > div {
   min-width: 0;
 }

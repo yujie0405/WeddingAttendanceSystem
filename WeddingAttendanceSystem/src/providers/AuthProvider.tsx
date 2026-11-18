@@ -1,11 +1,10 @@
-﻿import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import type { Session } from "@supabase/supabase-js";
 import type { CurrentUser } from "../types";
 import { authKey, defaultUser, normalizeUser } from "../api/migrations";
 import { apiRequest } from "../api/http";
-import { supabase } from "../api/supabase";
-import { isApiMode } from "../config";
+import { getAccessToken, setAccessToken } from "../api/session";
+import { apiBaseUrl, isApiMode } from "../config";
 import { AppError } from "../i18n/messages";
 import type { TranslationKey } from "../i18n/messages";
 
@@ -27,8 +26,8 @@ function loadUser() {
 }
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(loadUser);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(isApiMode && !!supabase);
+  const [token, setToken] = useState(() => isApiMode ? getAccessToken() : null);
+  const [loading, setLoading] = useState(isApiMode && !!token);
   const [authError, setAuthError] = useState<TranslationKey>();
   const [retryCount, setRetryCount] = useState(0);
   const updateLocal = (value: CurrentUser | null) => {
@@ -36,58 +35,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(value);
   };
   useEffect(() => {
-    if (!isApiMode) {
-      const sync = (event: StorageEvent) => { if (event.key === authKey) setUser(loadUser()); };
-      window.addEventListener("storage", sync);
-      return () => window.removeEventListener("storage", sync);
-    }
-    if (!supabase) return;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
-      // Keep this callback synchronous; resolve the backend identity in an effect.
-      setSession(next);
-      setLoading(!!next);
-      setAuthError(undefined);
-      if (!next) setUser(null);
-    });
-    return () => subscription.unsubscribe();
+    if (isApiMode) return;
+    const sync = (event: StorageEvent) => { if (event.key === authKey) setUser(loadUser()); };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, []);
   useEffect(() => {
-    if (!isApiMode || !session) return;
+    if (!isApiMode || !token) return;
     let active = true;
     const controller = new AbortController();
     setLoading(true);
-    void apiRequest<CurrentUser>("/auth/me", { signal: controller.signal }, session.access_token)
+    void apiRequest<CurrentUser>("/auth/me", { signal: controller.signal }, token)
       .then(value => { if (active) { setUser(value); setAuthError(undefined); } })
       .catch(error => {
         if (active) { setUser(null); setAuthError(error instanceof AppError ? error.key : "Backend.RequestFailed"); }
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; controller.abort(); };
-  }, [session, retryCount]);
-  return (
-    <AuthContext.Provider value={{
-      user, loading, authError,
-      retry: () => setRetryCount(value => value + 1),
-      login: async (name, password = "") => {
-        if (!isApiMode) {
-          updateLocal({ name: name.trim(), role: name.toLowerCase().includes("admin") ? "admin" : "staff" });
-          return;
-        }
-        if (!supabase) throw new AppError("Backend.ConfigurationRequired");
-        const { error } = await supabase.auth.signInWithPassword({ email: name.trim(), password });
-        if (error) throw new AppError("Backend.LoginFailed");
-      },
-      logout: async () => {
-        if (!isApiMode) { updateLocal(null); return; }
-        if (supabase) {
-          const { error } = await supabase.auth.signOut({ scope: "local" });
-          if (error) throw new AppError("Backend.RequestFailed");
-        }
-        setSession(null);
-        setUser(null);
-        setLoading(false);
-        setAuthError(undefined);
-      },
-    }}>{children}</AuthContext.Provider>
-  );
+  }, [token, retryCount]);
+  return <AuthContext.Provider value={{
+    user, loading, authError,
+    retry: () => setRetryCount(value => value + 1),
+    login: async (name, password = "") => {
+      if (!isApiMode) {
+        updateLocal({ name: name.trim(), role: name.toLowerCase().includes("admin") ? "admin" : "staff" });
+        return;
+      }
+      let response: Response;
+      try {
+        response = await fetch(apiBaseUrl + "/auth/login", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: name.trim(), password }),
+        });
+      } catch { throw new AppError("Backend.NetworkError"); }
+      if (!response.ok) throw new AppError(response.status === 401 ? "Backend.LoginFailed" : response.status === 429 ? "Register.RateLimited" : "Backend.RequestFailed");
+      const session = await response.json() as { accessToken: string };
+      setAccessToken(session.accessToken);
+      setAuthError(undefined);
+      setLoading(true);
+      setToken(session.accessToken);
+    },
+    logout: async () => {
+      if (!isApiMode) { updateLocal(null); return; }
+      setAccessToken(null);
+      setToken(null);
+      setUser(null);
+      setLoading(false);
+      setAuthError(undefined);
+    },
+  }}>{children}</AuthContext.Provider>;
 }

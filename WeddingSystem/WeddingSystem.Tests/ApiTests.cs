@@ -29,8 +29,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:WeddingDb"] = "Host=127.0.0.1;Port=1;Database=tests;Username=tests;Password=tests;Timeout=1",
-            ["Authentication:Authority"] = "",
+            ["Supabase:Url"] = "https://tests.invalid",
+            ["Supabase:Key"] = "test-public-key",
+            ["Authentication:SigningKey"] = "test-only-signing-key-of-at-least-sixty-four-bytes-for-local-login-tests",
             ["Authentication:AdminUserIds"] = "test-admin",
+            ["Authentication:AdminEmails"] = "yijietee123@gmail.com",
             ["Cors:AllowedOrigins:0"] = "http://localhost:5173"
         }));
         builder.ConfigureServices(services => services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
@@ -46,9 +49,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             };
         }));
     }
-    public HttpClient Authenticated(string user)
+    public HttpClient Authenticated(string user, string? email = null)
     {
-        var token = new JwtSecurityToken(Issuer, "authenticated", [new Claim("sub", user)],
+        var claims = new List<Claim> { new("sub", user) };
+        if (email is not null) claims.Add(new("email", email));
+        var token = new JwtSecurityToken(Issuer, "authenticated", claims,
             expires: DateTime.UtcNow.AddMinutes(5), signingCredentials: new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key)), SecurityAlgorithms.HmacSha256));
         var client = CreateClient();
@@ -59,6 +64,27 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
 public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
+    [Theory]
+    [InlineData("yijietee123@gmail.com", "admin")]
+    [InlineData("YIJIETEE123@gmail.com", "admin")]
+    [InlineData("other@gmail.com", "staff")]
+    [InlineData("yijietee123@gmail.com.attacker.test", "staff")]
+    public async Task AdminEmailRequiresExactServerConfiguredMatch(string email, string expectedRole)
+    {
+        using var client = factory.Authenticated("email-test-user", email);
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/api/auth/me"));
+        Assert.Equal(expectedRole, document.RootElement.GetProperty("role").GetString());
+    }
+    [Fact]
+    public void SupabaseClientIsScopedAndDoesNotConnectOnResolution()
+    {
+        using var first = factory.Services.CreateScope();
+        using var second = factory.Services.CreateScope();
+        var client = first.ServiceProvider.GetRequiredService<Supabase.Client>();
+        Assert.Same(client, first.ServiceProvider.GetRequiredService<Supabase.Client>());
+        Assert.NotSame(client, second.ServiceProvider.GetRequiredService<Supabase.Client>());
+    }
+
     [Fact]
     public async Task HealthStartsWithoutDatabaseAccess()
     {
@@ -71,6 +97,7 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Theory]
     [InlineData("/api/guests")]
     [InlineData("/api/guest-tags")]
+    [InlineData("/api/tables")]
     [InlineData("/api/admin/summary/angpau")]
     public async Task AnonymousRequestsAreRejected(string route)
     {
@@ -91,6 +118,14 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         using var client = factory.Authenticated("staff");
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/admin/summary/angpau")).StatusCode);
+    }
+
+    [Fact]
+    public async Task StaffCannotCreateOrDeleteTables()
+    {
+        using var client = factory.Authenticated("staff");
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/tables", new { capacity = 10 })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.DeleteAsync("/api/tables/1")).StatusCode);
     }
 
     [Theory]
@@ -187,6 +222,12 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var sql = db.Guests.Select(g => new { g.Id, g.TableNumber, g.AttendanceStatusId }).ToQueryString();
         Assert.Contains("public.\"Guest\"", sql);
         Assert.Contains("\"Table\"", sql);
-        Assert.Contains("\"AttendanceStatus\"", sql);
+        Assert.Contains("\"Attendance Status\"", sql);
+        var profileSql = db.Users.Select(u => new { u.Id, u.Email, u.Username, u.CreatedDate }).ToQueryString();
+        Assert.Contains("public.\"User\"", profileSql);
+        Assert.Contains("\"AccountId\"", profileSql);
+        Assert.Contains("\"UserName\"", profileSql);
+        Assert.Contains("\"createdDate\"", profileSql);
+        Assert.DoesNotContain("\"Password\"", profileSql);
     }
 }
