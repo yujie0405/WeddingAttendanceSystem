@@ -18,20 +18,30 @@ public sealed class GuestBLO(GuestDBO guests, LookupDBO lookups, IConfiguration 
         await guests.ReadAsync(id, ct) ?? throw Missing();
     public async Task<GuestResponse> CreateAsync(GuestWriteRequest request, CancellationToken ct)
     {
-        await ValidateAsync(request, ct);
+        await using var transaction = await guests.BeginWriteAsync(ct);
+        await ValidateAsync(request, null, ct);
         var guest = new GuestEntity();
         Apply(guest, request);
         guests.Add(guest);
         await guests.SaveAsync(ct);
-        return await GetAsync(guest.Id, ct);
+        var response = await GetAsync(guest.Id, ct);
+        await transaction.CommitAsync(ct);
+        return response;
     }
     public async Task<GuestResponse> UpdateAsync(int id, GuestWriteRequest request, CancellationToken ct)
     {
-        var guest = await guests.FindAsync(id, ct) ?? throw Missing();
-        await ValidateAsync(request, ct);
+        await using var transaction = await guests.BeginWriteAsync(ct);
+        var guest = await guests.FindForUpdateAsync(id, ct) ?? throw Missing();
+        await ValidateAsync(request, id, ct);
         Apply(guest, request);
         await guests.SaveAsync(ct);
-        return await GetAsync(id, ct);
+        var response = await GetAsync(id, ct);
+        await transaction.CommitAsync(ct);
+        return response;
+    }
+    public async Task DeleteAsync(int id, CancellationToken ct)
+    {
+        if (await guests.DeleteAsync(id, ct) == 0) throw Missing();
     }
     public async Task<GuestResponse> AttendanceAsync(int id, int status, CancellationToken ct)
     {
@@ -57,10 +67,15 @@ public sealed class GuestBLO(GuestDBO guests, LookupDBO lookups, IConfiguration 
             throw new ApiException(503, "STATUS_NOT_CONFIGURED", "Configure the arrived status ID before requesting attendance totals.");
         return await guests.SummaryAsync(arrived, ct);
     }
-    private async Task ValidateAsync(GuestWriteRequest request, CancellationToken ct)
+    private async Task ValidateAsync(GuestWriteRequest request, int? guestId, CancellationToken ct)
     {
-        if (request.TableNumber is { } number && !await lookups.TableExistsAsync(number, ct))
-            throw new ApiException(400, "INVALID_TABLE", "Select an existing table.");
+        if (request.TableNumber is { } number)
+        {
+            var capacity = await guests.TableCapacityAsync(number, ct)
+                ?? throw new ApiException(400, "INVALID_TABLE", "Select an existing table.");
+            if (await guests.AssignedPeopleAsync(number, guestId, ct) + request.GuestNum > capacity)
+                throw new ApiException(409, "TABLE_CAPACITY_EXCEEDED", "The selected table does not have enough seats for this party.");
+        }
         if (string.IsNullOrWhiteSpace(request.GuestName))
             throw new ApiException(400, "INVALID_NAME", "Enter a guest name.");
         if (!await lookups.TagExistsAsync(request.RelationId, ct))

@@ -21,6 +21,12 @@ public sealed class GuestsController(GuestBLO guests) : ControllerBase
     }
     [HttpPut("{id:int}"), Authorize(Policy = "Admin")]
     public Task<GuestResponse> Update(int id, GuestWriteRequest request, CancellationToken ct) => guests.UpdateAsync(id, request, ct);
+    [HttpDelete("{id:int}"), Authorize(Policy = "Admin")]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        await guests.DeleteAsync(id, ct);
+        return NoContent();
+    }
     [HttpPut("{id:int}/attendance")]
     public Task<GuestResponse> Attendance(int id, AttendanceRequest request, CancellationToken ct) =>
         guests.AttendanceAsync(id, request.AttendanceStatusId, ct);

@@ -1,0 +1,15 @@
+**/bin
+**/obj
+**/.vs
+**/.git
+**/.env
+**/.env.*
+**/*.env
+**/*.[Ll][Oo][Cc][Aa][Ll].*
+**/*.user
+**/secrets.json
+**/secrets/
+**/*.pfx
+**/*.p12
+**/*.pem
+**/*.key

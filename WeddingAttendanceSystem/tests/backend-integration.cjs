@@ -1,4 +1,4 @@
-// Synthetic Supabase/API browser integration. Never use real accounts or log credentials.
+// Synthetic API browser integration. Never use real accounts or log credentials.
 const assert = require('node:assert/strict');
 const { chromium } = require('../../WeddingSystem/.browser-tools/node_modules/playwright');
 const { createHmac } = require('node:crypto');
@@ -11,14 +11,12 @@ let stage = 'login';
     const page = await browser.newPage();
     page.setDefaultTimeout(15000);
     const id = '11111111-1111-4111-8111-111111111111';
-    const user = { id, aud: 'authenticated', role: 'authenticated', email: 'reception@example.test',
-      app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: { role: 'admin' }, created_at: new Date().toISOString() };
+    const user = { email: 'reception@example.test' };
     const base64 = value => Buffer.from(JSON.stringify(value)).toString('base64url');
     const payload = `${base64({ alg: 'HS256', typ: 'JWT' })}.${base64({ sub: id, aud: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}`;
     const token = `${payload}.${createHmac('sha256', 'synthetic-browser-test-only').update(payload).digest('base64url')}`;
     let currentRole = 'admin', authRequests = 0, apiRequests = 0, moneyRequests = 0;
-    let failedNextLookup = false, failNextGuestFetch = false;
-    let refreshCount = 0;
+    let failNextGuestFetch = false;
     const tags = [{ id: 7, name: 'Friends' }];
     const statuses = [{ id: 10, name: 'Pending' }, { id: 20, name: 'Arrived' }];
     let guests = Array.from({ length: 21 }, (_, index) => ({
@@ -37,23 +35,16 @@ let stage = 'login';
       localStorage.setItem('wedding-language', 'en');
       localStorage.setItem('wedding-react-v2', 'preserved-legacy-backup-sentinel');
     });
-    await page.route('http://127.0.0.1:54329/**', async route => {
-      const url = new URL(route.request().url());
-      if (url.pathname.endsWith('/token')) {
-        const body = route.request().postDataJSON();
-        if (url.searchParams.get('grant_type') === 'password') {
-          assert.ok(body.email === user.email && body.password === 'synthetic-test-password', 'Login must send email/password to Supabase Auth.');
-          authRequests++;
-        } else { refreshCount++; }
-        await route.fulfill({ json: { access_token: token, refresh_token: 'synthetic-refresh-value', token_type: 'bearer', expires_in: 3600, user } });
-      } else if (url.pathname.endsWith('/logout')) {
-        await route.fulfill({ status: 204 });
-      } else { await route.fulfill({ json: user }); }
-    });
     await page.route('http://127.0.0.1:5253/api/**', async route => {
       const request = route.request();
       const url = new URL(request.url());
       const path = url.pathname.replace('/api', '');
+      if (path === '/auth/login') {
+        const body = request.postDataJSON();
+        assert.ok(body.email === user.email && body.password === 'synthetic-test-password', 'Login must send email and password.');
+        authRequests++;
+        return route.fulfill({ json: { accessToken: token } });
+      }
       const headers = await request.allHeaders();
       // Boolean assertion avoids ever printing the header value on failure.
       assert.ok(headers.authorization === `Bearer ${token}`, 'API request is missing the user Bearer header.');
@@ -61,12 +52,18 @@ let stage = 'login';
       const method = request.method();
       if (path === '/auth/me') return route.fulfill({ json: { id, name: user.email, role: currentRole } });
       if (path === '/guest-tags') {
-        if (failedNextLookup) { failedNextLookup = false; return route.fulfill({ status: 401, json: {} }); }
         if (method === 'POST') { tags.push({ id: 8, name: request.postDataJSON().tagName }); return route.fulfill({ status: 201, json: tags.at(-1) }); }
         return route.fulfill({ json: tags });
       }
       if (path.startsWith('/guest-tags/') && method === 'DELETE') {
         return route.fulfill({ status: 409, json: { code: 'TAG_IN_USE' } });
+      }
+      if (path === '/tables') {
+        return route.fulfill({ json: [5, 6].map(tableNumber => ({
+          tableNumber, capacity: 25, guestTagId: null,
+          assignedCount: guests.filter(guest => guest.tableNumber === tableNumber)
+            .reduce((total, guest) => total + guest.guestNum, 0),
+        })) });
       }
       if (path === '/attendance-statuses') return route.fulfill({ json: statuses });
       if (path === '/guests' && method === 'GET') {
@@ -83,6 +80,13 @@ let stage = 'login';
         return route.fulfill({ status: 201, json: guest });
       }
       const match = path.match(/^\/guests\/(\d+)(\/attendance)?$/);
+      if (match && method === 'DELETE') {
+        assert.equal(currentRole, 'admin');
+        const id = Number(match[1]);
+        guests = guests.filter(guest => guest.id !== id);
+        delete amounts[id];
+        return route.fulfill({ status: 204 });
+      }
       if (match && method === 'PUT') {
         const guest = guests.find(item => item.id === Number(match[1]));
         const body = request.postDataJSON();
@@ -106,7 +110,7 @@ let stage = 'login';
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await page.locator('[data-guest-id="1"]').waitFor();
     assert.ok(authRequests === 1 && apiRequests > 0, 'Login and API data loading must run.');
-    checks.push('Supabase email/password login and Bearer-authenticated data loading');
+    checks.push('API email/password login and Bearer-authenticated data loading');
     stage = 'pagination next';
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await page.locator('[data-guest-id="21"]').waitFor();
@@ -114,13 +118,16 @@ let stage = 'login';
     await page.getByRole('button', { name: 'Previous', exact: true }).click();
     await page.locator('[data-guest-id="1"]').waitFor();
     const first = page.locator('[data-guest-id="1"]');
-    stage = 'attendance select';
-    await first.getByLabel('Attendance status', { exact: true }).selectOption('20');
+    stage = 'attendance button';
+    await first.getByRole('button', { name: 'Arrived', exact: true }).click();
     stage = 'attendance save response';
     await page.getByText('Saved', { exact: true }).waitFor();
     await page.locator('[data-guest-id="1"]').waitFor();
     assert.ok(guests[0].attendanceStatusId === 20, 'Attendance must save the actual lookup ID.');
     checks.push('Server pagination and attendance persistence');
+    assert.equal(await first.getByRole('button', { name: 'Edit', exact: true }).count(), 0);
+    await page.getByRole('link', { name: 'Admin settings', exact: true }).click();
+    await page.getByRole('link', { name: 'Add / Edit Guests', exact: true }).click();
     await page.locator('[data-guest-id="1"]').getByRole('button', { name: 'Edit', exact: true }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Guest name', { exact: true }).fill('Updated Guest');
@@ -130,22 +137,41 @@ let stage = 'login';
     await page.getByRole('heading', { name: 'Updated Guest', exact: true }).waitFor();
     assert.ok(guests[0].guestNum === 3 && amounts[1] === 0, 'Editing must preserve party size and not change money.');
     checks.push('Guest editing saves real IDs and party size');
-    await page.getByRole('link', { name: 'Admin settings', exact: true }).click();
     stage = 'guest creation';
-    await page.getByRole('link', { name: 'Add / Edit Guests', exact: true }).click();
     const addForm = page.getByRole('heading', { name: 'Add guest', exact: true }).locator('..');
+    stage = 'new guest name';
     await addForm.getByLabel('Guest name', { exact: true }).fill('New Arrival');
     await addForm.getByLabel('Relationship', { exact: true }).selectOption('7');
-    await addForm.getByLabel('Attendance status', { exact: true }).selectOption('10');
-    await addForm.getByLabel('Number of people', { exact: true }).fill('2');
-    await addForm.getByLabel('Table', { exact: true }).fill('6');
+    stage = 'new guest attendance';
+    await addForm.getByRole('button', { name: 'Pending', exact: true }).click();
+    stage = 'new guest table';
+    await addForm.getByLabel('Table', { exact: true }).selectOption('6');
+    const partySize = addForm.getByLabel('Number of people', { exact: true });
+    stage = 'table capacity feedback';
+    await partySize.fill('26');
+    await addForm.getByRole('alert').waitFor();
+    assert.ok(await addForm.getByRole('button', { name: 'Save', exact: true }).isDisabled());
+    stage = 'new guest save';
+    await partySize.fill('2');
     await addForm.getByRole('button', { name: 'Save', exact: true }).click();
     await page.getByText('22 guest records', { exact: true }).waitFor();
     assert.ok(guests.at(-1).guestNum === 2 && guests.at(-1).tableNumber === 6, 'Guest creation must send numeric API fields.');
     await page.reload();
     await page.getByText('22 guest records', { exact: true }).waitFor();
-    assert.ok(authRequests === 1, 'Reload must restore the existing Supabase session.');
+    assert.ok(authRequests === 1, 'Reload must restore the existing API session.');
     checks.push('Guest creation and authenticated session restoration after reload');
+    stage = 'guest deletion';
+    await page.getByRole('searchbox').fill('New Arrival');
+    const newGuest = page.locator('[data-guest-id="22"]');
+    await newGuest.getByRole('button', { name: 'Delete', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+    assert.ok(guests.some(guest => guest.id === 22));
+    await newGuest.getByRole('button', { name: 'Delete', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+    await newGuest.waitFor({ state: 'hidden' });
+    await page.getByText('Saved', { exact: true }).waitFor();
+    assert.ok(guests.every(guest => guest.id !== 22));
+    checks.push('Table capacity feedback and confirmed guest deletion');
     stage = 'administrator money';
     await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
     await page.getByText('Current angpau total (RM)', { exact: true }).first().waitFor();
@@ -153,6 +179,7 @@ let stage = 'login';
     const moneyRow = page.locator('[data-guest-id="1"]');
     await moneyRow.getByLabel('Current angpau total (RM)', { exact: true }).fill('123.45');
     await moneyRow.getByRole('button', { name: 'Save total', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Save total', exact: true }).click();
     await page.getByText('Saved', { exact: true }).waitFor();
     assert.ok(amounts[1] === 123.45, 'Gift form must replace the current total exactly.');
     checks.push('Administrator decimal angpau total replacement');
@@ -161,16 +188,9 @@ let stage = 'login';
     await page.getByLabel('New tag name', { exact: true }).fill('Colleagues');
     await page.getByRole('button', { name: 'Add tag', exact: true }).click();
     await page.getByText('Colleagues', { exact: true }).waitFor();
-    await page.locator('li').filter({ hasText: 'Friends' }).getByRole('button', { name: 'Delete', exact: true }).click();
-    await page.getByText('Reassign guests before deleting this relationship.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Delete tag Friends', exact: true }).click();
+    await page.getByText('This tag is in use. Reassign guests or tables before deleting it.', { exact: true }).waitFor();
     checks.push('Tag creation and referenced-tag error handling');
-    stage = 'session refresh';
-    failedNextLookup = true;
-    await page.getByRole('button', { name: 'Refresh', exact: true }).click();
-    await page.getByText('Colleagues', { exact: true }).waitFor();
-    await page.waitForFunction(() => document.querySelectorAll('[role="alert"]').length === 0);
-    assert.ok(refreshCount > 0, 'An expired-token response must refresh the session.');
-    checks.push('401 refresh and request retry');
     stage = 'logout and staff account';
     const oldData = await page.evaluate(() => localStorage.getItem('wedding-react-v2'));
     assert.ok(oldData === 'preserved-legacy-backup-sentinel', 'API mode must preserve the browser dataset.');
@@ -182,7 +202,7 @@ let stage = 'login';
     await page.getByLabel('Password', { exact: true }).fill('synthetic-test-password');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await page.locator('[data-guest-id="1"]').waitFor();
-    assert.ok(await page.getByRole('link', { name: 'Admin settings', exact: true }).count() === 0, 'Server staff role must override client metadata.');
+    assert.ok(await page.getByRole('link', { name: 'Admin settings', exact: true }).count() === 0, 'Server staff role must hide admin navigation.');
     assert.ok(await page.getByRole('button', { name: 'Edit', exact: true }).count() === 0, 'Staff must not see edit controls.');
     assert.ok(moneyRequests === beforeStaff, 'Staff data loading must not request money.');
     failNextGuestFetch = true;

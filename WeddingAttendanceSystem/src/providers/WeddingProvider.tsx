@@ -25,10 +25,15 @@ import {
 import { tableUsage } from "../utils/selectors";
 import { isApiMode } from "../config";
 
-function validateGuest(s: WeddingState, draft: GuestDraft) {
+function validateGuest(s: WeddingState, draft: GuestDraft, guestId?: string) {
   if (!draft.name.trim()) throw new AppError("Errors.GuestNameRequired");
-  if (!s.tables.some((item) => item.tableNo === draft.tableNo))
-    throw new AppError("Errors.InvalidTable");
+  const table = s.tables.find((item) => item.tableNo === draft.tableNo);
+  if (!table) throw new AppError("Errors.InvalidTable");
+  const guestNum = draft.guestNum ?? 1;
+  if (!Number.isSafeInteger(guestNum) || guestNum < 1)
+    throw new AppError("Common.GuestCountInvalid");
+  if (tableUsage(s, draft.tableNo, guestId).count + guestNum > table.capacity)
+    throw new AppError("Backend.TableCapacityExceeded");
 }
 function makeActions(isAdmin: boolean, recordedBy: string) {
   const admin = () => {
@@ -70,10 +75,21 @@ function makeActions(isAdmin: boolean, recordedBy: string) {
       }),
     editGuest: (id: string, draft: GuestDraft) =>
       weddingStore.transact((s) => {
-        validateGuest(s, draft);
+        admin();
+        validateGuest(s, draft, id);
         const g = s.guests.find((g) => g.id === id);
         if (!g) throw new AppError("Errors.GuestMissing");
         Object.assign(g, draft, { name: draft.name.trim() });
+      }),
+    deleteGuest: (id: string) =>
+      weddingStore.transact((s) => {
+        admin();
+        if (!s.guests.some((guest) => guest.id === id))
+          throw new AppError("Errors.GuestMissing");
+        s.guests = s.guests.filter((guest) => guest.id !== id);
+        s.angpaoRecords = s.angpaoRecords.filter(
+          (record) => record.targetType !== "individual" || record.targetId !== id,
+        );
       }),
     addTag: (name: string) =>
       weddingStore.transact((s) => {

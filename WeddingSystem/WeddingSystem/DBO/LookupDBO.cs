@@ -13,7 +13,6 @@ public sealed class LookupDBO(WeddingDbContext db)
         .OrderBy(x => x.Id).Select(x => new LookupResponse(x.Id, x.Status)).ToListAsync(ct);
     public Task<bool> TagExistsAsync(int id, CancellationToken ct) => db.GuestTags.AnyAsync(x => x.Id == id, ct);
     public Task<bool> StatusExistsAsync(int id, CancellationToken ct) => db.AttendanceStatuses.AnyAsync(x => x.Id == id, ct);
-    public Task<bool> TableExistsAsync(int number, CancellationToken ct) => db.SeatingTables.AnyAsync(x => x.TableNumber == number, ct);
     public async Task<bool> TagUsedAsync(int id, CancellationToken ct) =>
         await db.Guests.AnyAsync(x => x.RelationId == id, ct) || await db.SeatingTables.AnyAsync(x => x.GuestTagId == id, ct);
     public Task<GuestTagEntity?> FindTagAsync(int id, CancellationToken ct) => db.GuestTags.SingleOrDefaultAsync(x => x.Id == id, ct);

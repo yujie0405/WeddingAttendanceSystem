@@ -23,9 +23,11 @@ export const giftTotal = (s: WeddingState, type?: AngpaoType, id?: string) =>
       (r) => (!type || r.targetType === type) && (!id || r.targetId === id),
     )
     .reduce((sum, r) => sum + r.amount, 0);
-export function tableUsage(s: WeddingState, tableNo: string) {
+export function tableUsage(s: WeddingState, tableNo: string, excludingId?: string) {
   return {
-    count: s.guests.filter((g) => g.isActive && g.tableNo === tableNo).length,
+    count: s.guests
+      .filter((g) => g.isActive && g.tableNo === tableNo && g.id !== excludingId)
+      .reduce((count, guest) => count + (guest.guestNum ?? 1), 0),
     blocked:
       s.guests.some((g) => g.tableNo === tableNo) ||
       s.groups.some((g) => g.tableNos.includes(tableNo)),

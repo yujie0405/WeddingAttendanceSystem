@@ -49,6 +49,31 @@ public sealed class GuestApiTests
         Assert.Equal(0, (await client.GetFromJsonAsync<JsonElement>("/api/tables"))[0].GetProperty("assignedCount").GetInt32());
     }
 
+    [Fact]
+    public async Task TableCapacityCountsPeopleAndGuestDeletionReleasesSeats()
+    {
+        using var factory = new GuestFactory();
+        using var client = factory.Admin();
+        var party = new { guestName = "Party", relationId = 7, weddingSide = 1, guestNum = 10, tableNumber = 17 };
+        using var created = await client.PostAsJsonAsync("/api/guests", party);
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var id = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+        var guestUrl = $"/api/guests/{id}";
+
+        using var update = await client.PutAsJsonAsync(guestUrl, party);
+        Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+        using var overflow = await client.PostAsJsonAsync("/api/guests", party with { guestNum = 1 });
+        Assert.Equal(HttpStatusCode.Conflict, overflow.StatusCode);
+        Assert.Equal("TABLE_CAPACITY_EXCEEDED", (await overflow.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+
+        using var deleted = await client.DeleteAsync(guestUrl);
+        Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+        using var missing = await client.GetAsync(guestUrl);
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        using var replacement = await client.PostAsJsonAsync("/api/guests", party);
+        Assert.Equal(HttpStatusCode.Created, replacement.StatusCode);
+    }
+
     [Theory]
     [InlineData(999, 1, 17)]
     [InlineData(7, 999, 17)]

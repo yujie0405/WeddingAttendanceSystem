@@ -34,6 +34,7 @@ export const backend = {
   saveGuest: (guest: GuestInput, id?: number) => apiRequest<ApiGuest>(id ? `/guests/${id}` : "/guests", {
     method: id ? "PUT" : "POST", body: JSON.stringify(guest),
   }),
+  deleteGuest: (id: number) => apiRequest<void>(`/guests/${id}`, { method: "DELETE" }),
   attendance: (id: number, status: number) => apiRequest<ApiGuest>(`/guests/${id}/attendance`, {
     method: "PUT", body: JSON.stringify({ attendanceStatusId: status }),
   }),

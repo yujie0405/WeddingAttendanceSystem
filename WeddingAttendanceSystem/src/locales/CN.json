@@ -19,6 +19,10 @@
         "Close": "关闭",
         "Edit": "编辑",
         "Delete": "删除",
+        "DeleteGuestConfirmation": "确定要永久删除 {{name}} 及其个人礼金记录吗？",
+        "GuestDeleted": "已删除宾客",
+        "SeatsAvailable": "剩余 {{count}} 个座位",
+        "GuestCountInvalid": "请输入正整数人数。",
         "SaveChanges": "保存修改",
         "ConfirmSave": "确认保存",
         "Name": "姓名",
@@ -79,7 +83,6 @@
         "AllTags": "全部自定义标签",
         "Empty": "未找到匹配的宾客，请尝试更改搜索词或筛选条件。",
         "FamilyCheckIn": "全家签到",
-        "EditGuest": "修改宾客资料及标签",
         "RegisterGift": "登记礼金",
         "RecordedGifts_one": "已登记 ({{count}} 笔)",
         "RecordedGifts_other": "已登记 ({{count}} 笔)",
@@ -272,6 +275,7 @@
     },
 
     "Backend": {
+    "TableCapacityExceeded": "所选桌位的剩余座位不足以容纳该组宾客。",
     "AllTables": "????",
     "AddTagFirst": "???????????????",
     "DefaultStatusMissing": "?????? ID 1???? AttendanceStatus ???????",

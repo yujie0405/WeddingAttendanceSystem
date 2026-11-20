@@ -19,6 +19,11 @@
     "Close": "Close",
     "Edit": "Edit",
     "Delete": "Delete",
+    "DeleteGuestConfirmation": "Permanently delete {{name}} and any individual gift records linked to this guest?",
+    "GuestDeleted": "Guest deleted",
+    "SeatsAvailable_one": "{{count}} seat available",
+    "SeatsAvailable_other": "{{count}} seats available",
+    "GuestCountInvalid": "Enter a positive whole number of people.",
     "SaveChanges": "Save changes",
     "ConfirmSave": "Save",
     "Name": "Name",
@@ -79,7 +84,6 @@
     "AllTags": "All tags",
     "Empty": "No matching guests. Try another search or filter.",
     "FamilyCheckIn": "Check in family",
-    "EditGuest": "Edit guest details and tags",
     "RegisterGift": "Register angpau",
     "RecordedGifts_one": "Recorded ({{count}} gift)",
     "RecordedGifts_other": "Recorded ({{count}} gifts)",
@@ -271,6 +275,7 @@
     }
   },
   "Backend": {
+    "TableCapacityExceeded": "The selected table does not have enough seats for this party.",
     "AllTables": "All tables",
     "AddTagFirst": "Add a guest tag before creating a guest.",
     "DefaultStatusMissing": "Attendance status ID 1 is missing. Add it in AttendanceStatus before creating guests.",

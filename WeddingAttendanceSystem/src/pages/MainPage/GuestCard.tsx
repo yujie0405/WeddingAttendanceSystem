@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheck,
   faGift,
-  faPenToSquare,
   faUserCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import type { Guest, WeddingState } from "../../types";
@@ -12,7 +11,6 @@ export function GuestCard({
   guest: g,
   state,
   onCheckIn,
-  onEdit,
   onGift,
   onHistory,
   onFamily,
@@ -20,7 +18,6 @@ export function GuestCard({
   guest: Guest;
   state: WeddingState;
   onCheckIn: () => void;
-  onEdit: () => void;
   onGift: () => void;
   onHistory: () => void;
   onFamily: () => void;
@@ -75,13 +72,6 @@ export function GuestCard({
             )}
           </div>
         </div>
-        <button
-          title={t("Main.EditGuest")}
-          className="guest-edit"
-          onClick={onEdit}
-        >
-          <FontAwesomeIcon icon={faPenToSquare} />
-        </button>
       </div>
       <div className="guest-actions">
         <div className="d-flex flex-wrap align-items-center wedding-gap-2">

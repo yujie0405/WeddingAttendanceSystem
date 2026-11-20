@@ -4,7 +4,8 @@ import { useState } from "react";
 import type { Guest, GuestDraft } from "../../../types";
 import { useWedding } from "../../../hooks/useWedding";
 import { usePagination } from "../../../hooks/usePagination";
-import { matchesGuest } from "../../../utils/selectors";
+import { confirmAction } from "../../../component/alerts";
+import { matchesGuest, tableUsage } from "../../../utils/selectors";
 import { Listing } from "../../../component/listing";
 import type { ListingColumn } from "../../../component/listing";
 import { Pagination } from "../../../component/pagination";
@@ -17,6 +18,7 @@ import {
 import { GuestEditModal } from "../../../component/GuestEditModal";
 const emptyDraft: GuestDraft = {
   name: "",
+  guestNum: 1,
   relationship: "",
   side: "groom",
   tableNo: "",
@@ -37,6 +39,13 @@ export function Guests() {
   const table = state.tables.some((item) => item.tableNo === draft.tableNo)
     ? draft.tableNo
     : state.tables[0]?.tableNo || "";
+  const selectedTable = state.tables.find((item) => item.tableNo === table);
+  const available = Math.max(0, (selectedTable?.capacity ?? 0) - tableUsage(state, table).count);
+  const overCapacity = Boolean(selectedTable) && (draft.guestNum ?? 1) > available;
+  const deleteGuest = async (guest: Guest) => {
+    if (!await confirmAction(t("Common.DeleteGuestConfirmation", { name: guest.name }), t("Common.Delete"), t("Common.Cancel"))) return;
+    await run(() => actions.deleteGuest(guest.id), "Common.GuestDeleted");
+  };
   const relationships = [...new Set(state.tags.map((item) => item.name))];
   const columns: ListingColumn<Guest>[] = [
     {
@@ -82,18 +91,26 @@ export function Guests() {
     {
       key: "status",
       title: t("Common.Status"),
-      render: (g) => <AttendanceBadge guest={g} />,
+      render: (g) => (
+        <button type="button" className="admin-outline-button"
+          aria-pressed={g.status === "arrived"} disabled={!g.isActive}
+          onClick={() => void run(() => actions.toggleCheckIn(g.id), "Backend.Saved")}>
+          <AttendanceBadge guest={g} />
+        </button>
+      ),
     },
     {
       key: "actions",
       title: t("Common.Actions"),
       render: (g) => (
-        <button
-          className="admin-outline-button"
-          onClick={() => setEditId(g.id)}
-        >
-          {t("Common.Edit")}
-        </button>
+        <div className="admin-row-actions">
+          <button type="button" className="admin-outline-button" onClick={() => setEditId(g.id)}>
+            {t("Common.Edit")}
+          </button>
+          <button type="button" className="admin-danger-button" onClick={() => void deleteGuest(g)}>
+            {t("Common.Delete")}
+          </button>
+        </div>
       ),
     },
   ];
@@ -103,7 +120,7 @@ export function Guests() {
         className="wedding-space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (busy) return;
+          if (busy || overCapacity) return;
           setBusy(true);
           if (
             await run(
@@ -170,6 +187,12 @@ export function Guests() {
             </select>
           </label>
           <label className="admin-label">
+            {t("Backend.GuestNum")}
+            <input type="number" min="1" step="1" required className="admin-input"
+              value={draft.guestNum || ""}
+              onChange={(e) => setDraft({ ...draft, guestNum: Number(e.target.value) })} />
+          </label>
+          <label className="admin-label">
             {t("Common.AssignTable")}
             <select
               className="admin-input"
@@ -188,10 +211,12 @@ export function Guests() {
             </select>
           </label>
         </div>
+        {selectedTable && <p className="admin-help">{t("Common.SeatsAvailable", { count: available })}</p>}
+        {overCapacity && <p role="alert">{t("Backend.TableCapacityExceeded")}</p>}
         <button
           className="admin-primary-button w-100"
           type="submit"
-          disabled={busy || !state.tables.length || !relationships.length}
+          disabled={busy || overCapacity || !state.tables.length || !relationships.length}
         >
           {t("Admin.Guests.Add")}
         </button>

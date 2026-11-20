@@ -23,6 +23,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, exp
     if (body.code === "TAG_IN_USE") throw new AppError("Backend.TagInUse");
     if (body.code === "TABLE_IN_USE") throw new AppError("Backend.TableInUse");
     if (body.code === "TABLE_NUMBER_EXISTS") throw new AppError("Backend.TableNumberExists");
+    if (body.code === "TABLE_CAPACITY_EXCEEDED") throw new AppError("Backend.TableCapacityExceeded");
     if (response.status === 409) throw new AppError("Backend.Conflict");
     if (response.status === 400) throw new AppError("Backend.InvalidInput");
     throw new AppError("Backend.RequestFailed");

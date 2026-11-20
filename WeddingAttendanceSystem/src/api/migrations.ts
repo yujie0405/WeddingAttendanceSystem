@@ -55,8 +55,12 @@ export function normalizeData(raw: unknown): WeddingState {
       throw new AppError("Errors.DataAttendance");
     if (g.isActive !== undefined && typeof g.isActive !== "boolean")
       throw new AppError("Errors.DataActivity");
+    const guestNum = g.guestNum === undefined ? 1 : number(g.guestNum);
+    if (!Number.isSafeInteger(guestNum) || guestNum < 1)
+      throw new AppError("Common.GuestCountInvalid");
     return {
       id: text(g.id),
+      guestNum,
       name: text(g.name),
       relationship: text(g.relationship),
       side: side(g.side),

@@ -5,7 +5,6 @@ import { useGuests } from "../../hooks/useGuests";
 import { matchesGuest } from "../../utils/selectors";
 import { Listing } from "../../component/listing";
 import { SearchField } from "../../component/ui";
-import { GuestEditModal } from "../../component/GuestEditModal";
 import { AngpaoModal } from "../../component/AngpaoModal";
 import { AngpaoHistoryModal } from "../../component/AngpaoHistoryModal";
 import { FamilyCheckInModal } from "../../component/FamilyCheckInModal";
@@ -22,7 +21,7 @@ export function MainPage() {
   const [table, setTable] = useState("all");
   const [tag, setTag] = useState("all");
   const [modal, setModal] = useState<{
-    kind: "edit" | "gift" | "history" | "family";
+    kind: "gift" | "history" | "family";
     id: string;
   }>();
   const active = guests.filter((g) => g.isActive);
@@ -149,16 +148,12 @@ export function MainPage() {
                     },
               );
             }}
-            onEdit={() => setModal({ kind: "edit", id: g.id })}
             onGift={() => setModal({ kind: "gift", id: g.id })}
             onHistory={() => setModal({ kind: "history", id: g.id })}
             onFamily={() => setModal({ kind: "family", id: g.id })}
           />
         )}
       />
-      {guest && modal?.kind === "edit" && (
-        <GuestEditModal guest={guest} onClose={close} />
-      )}
       {guest && modal?.kind === "gift" && (
         <AngpaoModal guest={guest} onClose={close} />
       )}

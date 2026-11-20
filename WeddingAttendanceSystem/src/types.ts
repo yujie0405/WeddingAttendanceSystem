@@ -24,6 +24,7 @@ export interface Guest {
   side: WeddingSide;
   tableNo: string;
   seatNo?: string;
+  guestNum?: number;
   status: AttendanceStatus;
   checkInTime?: string;
   tagIds: string[];
@@ -68,7 +69,7 @@ export interface WeddingState {
 }
 export type GuestDraft = Pick<
   Guest,
-  "name" | "relationship" | "side" | "tableNo" | "seatNo" | "tagIds"
+  "name" | "relationship" | "side" | "tableNo" | "seatNo" | "tagIds" | "guestNum"
 >;
 export interface GiftDraft {
   targetType: AngpaoType;

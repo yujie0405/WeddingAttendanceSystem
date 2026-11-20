@@ -47,6 +47,7 @@ const errors = [],
     const close = async () => page.keyboard.press("Escape");
     await go();
     assert.equal(await page.locator("[data-guest-id]").count(), 8);
+    assert.equal(await page.getByTitle("修改宾客资料及标签").count(), 0);
     assert((await state()).guests.every((g) => g.isActive));
     const before = await state();
     await page.reload({ waitUntil: "domcontentloaded" });

@@ -179,7 +179,7 @@ Select **Log out** when finished. Logging out ends the local session without del
 | `/admin/add-guest` | Add and edit guest records | Administrator |
 | `/admin/table-setting` | Table capacity and assignment overview | Administrator |
 
-In local mode these restrictions control only the demo interface. In API mode, authenticated reads and staff attendance updates are enforced by the backend, while guest/relationship management and all financial endpoints additionally require the server Admin policy. Table capacity settings are not exposed in API navigation; assign table numbers in guest details instead.
+In local mode these restrictions control only the demo interface. In API mode, authenticated reads and staff attendance updates are enforced by the backend, while guest/relationship management and all financial endpoints additionally require the server Admin policy. Admins set table capacities in Table Settings. Guest assignments use party size, and a table at capacity cannot accept another party. Admins can delete guest records from Add / Edit Guests.
 
 ## Project structure
 

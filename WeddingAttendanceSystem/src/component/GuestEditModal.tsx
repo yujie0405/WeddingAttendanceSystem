@@ -17,6 +17,7 @@ export function GuestEditModal({
   const { state, actions, run } = useWedding();
   const [draft, setDraft] = useState<GuestDraft>({
     name: guest.name,
+    guestNum: guest.guestNum ?? 1,
     relationship: guest.relationship,
     side: guest.side,
     tableNo: guest.tableNo,
@@ -123,6 +124,12 @@ export function GuestEditModal({
                 </option>
               ))}
             </select>
+          </label>
+          <label className="admin-label">
+            {t("Backend.GuestNum")}
+            <input type="number" min="1" step="1" required className="admin-input"
+              value={draft.guestNum || ""}
+              onChange={(e) => setDraft({ ...draft, guestNum: Number(e.target.value) })} />
           </label>
           <label className="admin-label">
             {t("Modal.EditGuest.Seat")}

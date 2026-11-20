@@ -147,7 +147,9 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("v1/swagger.json", "WeddingSystem API v1");
     });
 }
-if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
+// Render redirects public HTTP at its edge and proxies to Kestrel over HTTP.
+var runsOnRender = string.Equals(Environment.GetEnvironmentVariable("RENDER"), "true", StringComparison.OrdinalIgnoreCase);
+if (!app.Environment.IsDevelopment() && !runsOnRender) app.UseHttpsRedirection();
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();

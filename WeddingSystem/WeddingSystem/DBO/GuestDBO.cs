@@ -32,7 +32,29 @@ public sealed class GuestDBO(WeddingDbContext db)
     }
     public Task<GuestResponse?> ReadAsync(int id, CancellationToken ct) => db.Guests.AsNoTracking()
         .Where(g => g.Id == id).Select(Projection).SingleOrDefaultAsync(ct);
-    public Task<GuestEntity?> FindAsync(int id, CancellationToken ct) => db.Guests.SingleOrDefaultAsync(g => g.Id == id, ct);
+    public Task<GuestEntity?> FindForUpdateAsync(int id, CancellationToken ct)
+    {
+        var guests = db.Database.IsNpgsql()
+            ? db.Guests.FromSql($"""SELECT * FROM public."Guest" WHERE "id" = {id} FOR UPDATE""")
+            : db.Guests;
+        return guests.SingleOrDefaultAsync(g => g.Id == id, ct);
+    }
+    public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginWriteAsync(CancellationToken ct) =>
+        db.Database.BeginTransactionAsync(ct);
+    public Task<int?> TableCapacityAsync(int number, CancellationToken ct)
+    {
+        // Serialize assignments targeting the same PostgreSQL table row.
+        var tables = db.Database.IsNpgsql()
+            ? db.SeatingTables.FromSql($"""SELECT * FROM public."Table" WHERE "TableNum" = {number} FOR NO KEY UPDATE""")
+            : db.SeatingTables;
+        return tables.AsNoTracking().Where(t => t.TableNumber == number)
+            .Select(t => (int?)t.Capacity).SingleOrDefaultAsync(ct);
+    }
+    public Task<long> AssignedPeopleAsync(int number, int? excludingId, CancellationToken ct) =>
+        db.Guests.Where(g => g.TableNumber == number && (excludingId == null || g.Id != excludingId))
+            .SumAsync(g => (long)g.GuestNum, ct);
+    public Task<int> DeleteAsync(int id, CancellationToken ct) =>
+        db.Guests.Where(g => g.Id == id).ExecuteDeleteAsync(ct);
     public void Add(GuestEntity guest) => db.Guests.Add(guest);
     public Task SaveAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
     public Task<int> SetAttendanceAsync(int id, int status, CancellationToken ct) => db.Guests.Where(g => g.Id == id)
