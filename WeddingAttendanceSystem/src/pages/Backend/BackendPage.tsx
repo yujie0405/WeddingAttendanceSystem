@@ -35,6 +35,7 @@ export function BackendPage({ mode }: { mode: Mode }) {
   const [edit, setEdit] = useState<ApiGuest>();
   const [amounts, setAmounts] = useState<Record<number, number>>({});
   const [total, setTotal] = useState<number | undefined>();
+  const [giftError, setGiftError] = useState<TranslationKey>();
   const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary>();
   const [attendanceError, setAttendanceError] = useState<TranslationKey>();
   const [formKey, setFormKey] = useState(0);
@@ -45,6 +46,9 @@ export function BackendPage({ mode }: { mode: Mode }) {
     const signal = controller.signal;
     setLoading(true);
     setError(undefined);
+    setGiftError(undefined);
+    setAmounts({});
+    setTotal(undefined);
     const query = new URLSearchParams({ page: String(page), pageSize: "20" });
     if (search.trim()) query.set("search", search.trim());
     if (side) query.set("weddingSide", side);
@@ -60,13 +64,18 @@ export function BackendPage({ mode }: { mode: Mode }) {
       if (signal.aborted) return;
       setTags(nextTags); setStatuses(nextStatuses); setRows(nextRows);
       setTables(nextTables);
+      setLoading(false);
       if (mode === "gifts") {
-        const [money, sum] = await Promise.all([
-          Promise.all(nextRows.items.map(guest => backend.money(guest.id, signal))), backend.total(signal),
+        const [money, [sum]] = await Promise.all([
+          Promise.allSettled(nextRows.items.map(guest => backend.money(guest.id, signal))),
+          Promise.allSettled([backend.total(signal)]),
         ]);
         if (signal.aborted) return;
-        setAmounts(Object.fromEntries(money.map(item => [item.guestId, item.amount])));
-        setTotal(sum.amount);
+        setAmounts(Object.fromEntries(money.flatMap(result => result.status === "fulfilled"
+          ? [[result.value.guestId, result.value.amount]] : [])));
+        if (sum.status === "fulfilled") setTotal(sum.value.amount);
+        const failed = sum.status === "rejected" ? sum : money.find(result => result.status === "rejected");
+        if (failed) setGiftError(failure(failed.reason));
       }
     })().catch(error => { if (!signal.aborted) setError(failure(error)); })
       .finally(() => { if (!signal.aborted) setLoading(false); });
@@ -119,6 +128,9 @@ export function BackendPage({ mode }: { mode: Mode }) {
       <button type="button" className="admin-outline-button" disabled={loading || saving} onClick={() => setRevision(value => value + 1)}>{t("Backend.Refresh")}</button>
     </div>
     {error && <div role="alert" className="admin-section"><p>{t(error)}</p>
+      <button type="button" onClick={() => setRevision(value => value + 1)}>{t("Backend.Retry")}</button>
+    </div>}
+    {giftError && <div role="alert" className="admin-section"><p>{t(giftError)}</p>
       <button type="button" onClick={() => setRevision(value => value + 1)}>{t("Backend.Retry")}</button>
     </div>}
     {saved && <p role="status">{t("Backend.Saved")}</p>}

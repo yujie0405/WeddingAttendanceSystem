@@ -16,7 +16,7 @@ let stage = 'login';
     const payload = `${base64({ alg: 'HS256', typ: 'JWT' })}.${base64({ sub: id, aud: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}`;
     const token = `${payload}.${createHmac('sha256', 'synthetic-browser-test-only').update(payload).digest('base64url')}`;
     let currentRole = 'admin', authRequests = 0, apiRequests = 0, moneyRequests = 0;
-    let failNextGuestFetch = false;
+    let failNextGuestFetch = false, failOneGuestAmount = false;
     const tags = [{ id: 7, name: 'Friends' }];
     const statuses = [{ id: 10, name: 'Pending' }, { id: 20, name: 'Arrived' }];
     let guests = Array.from({ length: 21 }, (_, index) => ({
@@ -104,6 +104,9 @@ let stage = 'login';
         assert.ok(currentRole === 'admin', 'Staff must not request financial endpoints.');
         if (path === '/admin/summary/angpau') return route.fulfill({ json: { amount: Object.values(amounts).reduce((a, b) => a + b, 0), currency: 'MYR' } });
         const guestId = Number(path.match(/\/guests\/(\d+)/)[1]);
+        if (failOneGuestAmount && guestId === 2 && method === 'GET') {
+          return route.fulfill({ status: 503, json: {} });
+        }
         if (method === 'PUT') amounts[guestId] = request.postDataJSON().amount;
         return route.fulfill({ json: { guestId, amount: amounts[guestId] } });
       }
@@ -180,7 +183,14 @@ let stage = 'login';
     assert.ok(guests.every(guest => guest.id !== 22));
     checks.push('Table capacity feedback and confirmed guest deletion');
     stage = 'administrator money';
+    failOneGuestAmount = true;
     await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
+    await page.getByRole('alert').getByRole('button', { name: 'Retry' }).waitFor();
+    await page.locator('[data-guest-id="2"]').waitFor();
+    assert.equal(await page.locator('[data-guest-id]').count(), 20);
+    checks.push('Unfiltered dashboard displays the first guest page despite a failed angpau request');
+    failOneGuestAmount = false;
+    await page.getByRole('alert').getByRole('button', { name: 'Retry' }).click();
     const attendanceCard = page.getByRole('heading', { name: 'Attended guests', exact: true }).locator('..');
     await attendanceCard.getByText('13%', { exact: true }).waitFor();
     await page.getByText('Current angpau total (RM)', { exact: true }).first().waitFor();
