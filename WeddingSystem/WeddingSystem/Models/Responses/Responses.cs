@@ -1,8 +1,8 @@
 namespace WeddingSystem.Models.Responses;
 
 // Financial amounts intentionally excluded from all regular guest DTOs.
-public sealed record GuestResponse(int Id, string GuestName, int RelationId,
-    string Relationship, int WeddingSide, int GuestNum, int AttendanceStatusId,
+public sealed record GuestResponse(int Id, string GuestName, int? RelationId,
+    string? Relationship, int WeddingSide, int GuestNum, int AttendanceStatusId,
     string AttendanceStatus, int? TableNumber, DateTime CreatedDate);
 public sealed record LookupResponse(int Id, string Name);
 public sealed record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, int TotalCount);

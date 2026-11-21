@@ -21,6 +21,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, exp
     if (response.status === 401) throw new AppError("Backend.SessionExpired");
     if (response.status === 403) throw new AppError("Backend.Forbidden");
     if (body.code === "TAG_IN_USE") throw new AppError("Backend.TagInUse");
+    if (body.code === "STATUS_NOT_CONFIGURED") throw new AppError("Backend.AttendanceStatusNotConfigured");
     if (body.code === "TABLE_IN_USE") throw new AppError("Backend.TableInUse");
     if (body.code === "TABLE_NUMBER_EXISTS") throw new AppError("Backend.TableNumberExists");
     if (body.code === "TABLE_CAPACITY_EXCEEDED") throw new AppError("Backend.TableCapacityExceeded");

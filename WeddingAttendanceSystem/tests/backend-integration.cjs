@@ -66,6 +66,11 @@ let stage = 'login';
         })) });
       }
       if (path === '/attendance-statuses') return route.fulfill({ json: statuses });
+      if (path === '/summary/attendance') return route.fulfill({ json: {
+        arrivedPeople: guests.filter(guest => guest.attendanceStatusId === 20)
+          .reduce((total, guest) => total + guest.guestNum, 0),
+        totalPeople: guests.reduce((total, guest) => total + guest.guestNum, 0),
+      } });
       if (path === '/guests' && method === 'GET') {
         if (failNextGuestFetch) { failNextGuestFetch = false; return route.fulfill({ status: 503, json: {} }); }
         const term = (url.searchParams.get('search') || '').toLowerCase();
@@ -124,6 +129,8 @@ let stage = 'login';
     await page.getByText('Saved', { exact: true }).waitFor();
     await page.locator('[data-guest-id="1"]').waitFor();
     assert.ok(guests[0].attendanceStatusId === 20, 'Attendance must save the actual lookup ID.');
+    await page.getByRole('heading', { name: 'Attended guests', exact: true }).locator('..')
+      .getByText('4.8%', { exact: true }).waitFor();
     checks.push('Server pagination and attendance persistence');
     assert.equal(await first.getByRole('button', { name: 'Edit', exact: true }).count(), 0);
     await page.getByRole('link', { name: 'Admin settings', exact: true }).click();
@@ -174,6 +181,8 @@ let stage = 'login';
     checks.push('Table capacity feedback and confirmed guest deletion');
     stage = 'administrator money';
     await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
+    const attendanceCard = page.getByRole('heading', { name: 'Attended guests', exact: true }).locator('..');
+    await attendanceCard.getByText('13%', { exact: true }).waitFor();
     await page.getByText('Current angpau total (RM)', { exact: true }).first().waitFor();
     page.on('dialog', dialog => dialog.accept());
     const moneyRow = page.locator('[data-guest-id="1"]');

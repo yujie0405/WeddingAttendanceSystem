@@ -20,6 +20,48 @@ namespace WeddingSystem.Tests;
 
 public sealed class GuestApiTests
 {
+    [Theory]
+    [InlineData("0")]
+    [InlineData("2")]
+    public async Task AttendanceSummaryCountsPeopleWithDetectedOrConfiguredArrivedStatus(string arrivedStatusId)
+    {
+        using var factory = new GuestFactory { ArrivedStatusId = arrivedStatusId };
+        using var client = factory.Admin();
+        var party = new { guestName = "Party of three", relationId = 7, weddingSide = 1, guestNum = 3 };
+        using var created = await client.PostAsJsonAsync("/api/guests", party);
+        created.EnsureSuccessStatusCode();
+        var id = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+        await factory.AddGuestWithoutRelationshipAsync();
+
+        var before = await client.GetFromJsonAsync<JsonElement>("/api/summary/attendance");
+        Assert.Equal(4, before.GetProperty("totalPeople").GetInt64());
+        Assert.Equal(0, before.GetProperty("arrivedPeople").GetInt64());
+
+        using var checkedIn = await client.PutAsJsonAsync($"/api/guests/{id}/attendance", new { attendanceStatusId = 2 });
+        checkedIn.EnsureSuccessStatusCode();
+        var after = await client.GetFromJsonAsync<JsonElement>("/api/summary/attendance");
+        Assert.Equal(4, after.GetProperty("totalPeople").GetInt64());
+        Assert.Equal(3, after.GetProperty("arrivedPeople").GetInt64());
+    }
+
+    [Fact]
+    public async Task ImportedGuestWithoutRelationshipIsCountedAndReturned()
+    {
+        using var factory = new GuestFactory();
+        using var client = factory.Admin();
+        var id = await factory.AddGuestWithoutRelationshipAsync();
+
+        var page = await client.GetFromJsonAsync<JsonElement>("/api/guests");
+        Assert.Equal(1, page.GetProperty("totalCount").GetInt32());
+        var listed = Assert.Single(page.GetProperty("items").EnumerateArray());
+        Assert.Equal(id, listed.GetProperty("id").GetInt32());
+        Assert.Equal("Imported Guest", listed.GetProperty("guestName").GetString());
+        Assert.Equal(JsonValueKind.Null, listed.GetProperty("relationId").ValueKind);
+        Assert.Equal(JsonValueKind.Null, listed.GetProperty("relationship").ValueKind);
+        var guest = await client.GetFromJsonAsync<JsonElement>($"/api/guests/{id}");
+        Assert.Equal(id, guest.GetProperty("id").GetInt32());
+    }
+
     [Fact]
     public async Task LookupsAndGuestCreateEditUseActualSchemaAndDefaultStatus()
     {
@@ -89,6 +131,8 @@ public sealed class GuestApiTests
 
     private sealed class GuestFactory : WebApplicationFactory<Program>
     {
+        public string ArrivedStatusId { get; init; } = "2";
+
         private readonly SqliteConnection connection = new("Data Source=:memory:");
         private readonly Guid adminId = Guid.NewGuid();
         public GuestFactory()
@@ -104,6 +148,22 @@ public sealed class GuestApiTests
             db.SaveChanges();
         }
         private WeddingDbContext Context() => new(new DbContextOptionsBuilder<WeddingDbContext>().UseSqlite(connection).Options);
+
+        public async Task<int> AddGuestWithoutRelationshipAsync()
+        {
+            await using var db = Context();
+            var guest = new WeddingSystem.Models.Entities.GuestEntity
+            {
+                GuestName = "Imported Guest",
+                WeddingSide = 1,
+                GuestNum = 1,
+                AttendanceStatusId = 1
+            };
+            db.Guests.Add(guest);
+            await db.SaveChangesAsync();
+            return guest.Id;
+        }
+
         public HttpClient Admin()
         {
             var token = new JwtSecurityToken(LoginTokens.Issuer, LoginTokens.Audience, [new Claim("sub", adminId.ToString())], expires: DateTime.UtcNow.AddMinutes(5),
@@ -118,6 +178,7 @@ public sealed class GuestApiTests
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Authentication:SigningKey"] = RegistrationTests.Key,
+                ["Attendance:ArrivedStatusId"] = ArrivedStatusId,
                 ["Supabase:Url"] = "https://tests.invalid", ["Supabase:Key"] = "test-key"
             }));
             builder.ConfigureServices(services => services.AddScoped(_ => Context()));

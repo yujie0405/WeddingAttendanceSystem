@@ -92,7 +92,7 @@ The checked-in file contains placeholders. Supply real values locally, without c
 
 Use the exact host, port, database user, and database password shown by the Supabase Connect dialog. An IPv4-only development host can use the session pooler on port 5432. Verify the TLS certificate using the appropriate CA/trust configuration; do not disable certificate validation. This is a PostgreSQL login, not an anon/publishable API key. Tune pool size to the database connection budget.
 
-`Attendance:ArrivedStatusId` must be replaced by a positive integer from your lookup table, not the literal placeholder. Multiple administrators are comma-separated authenticated user UUIDs. Add more CORS origins with numbered keys (`Cors:AllowedOrigins:1`, etc.). XML-escape password characters such as `&` as `&amp;`; connection-string quoting rules also apply.
+`Attendance:ArrivedStatusId` accepts a positive integer from your lookup table. Use `0` or omit the setting to detect a single matching status labeled Arrived, Attended, Checked in, Checked-in, 已到, 已到场, or 已签到. For custom labels or multiple matches, set the actual arrived status ID. Multiple administrators are comma-separated authenticated user UUIDs. Add more CORS origins with numbered keys (`Cors:AllowedOrigins:1`, etc.). XML-escape password characters such as `&` as `&amp;`; connection-string quoting rules also apply.
 
 Configuration precedence, lowest to highest:
 

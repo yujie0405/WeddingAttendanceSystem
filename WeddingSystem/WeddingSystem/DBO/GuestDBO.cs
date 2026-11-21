@@ -9,7 +9,7 @@ namespace WeddingSystem.DBO;
 public sealed class GuestDBO(WeddingDbContext db)
 {
     private static System.Linq.Expressions.Expression<Func<GuestEntity, GuestResponse>> Projection => g =>
-        new(g.Id, g.GuestName, g.RelationId, g.Relation.TagName, g.WeddingSide,
+        new(g.Id, g.GuestName, g.RelationId, g.Relation == null ? null : g.Relation.TagName, g.WeddingSide,
             g.GuestNum, g.AttendanceStatusId, g.Attendance.Status, g.TableNumber, g.CreatedDate);
 
     public async Task<PagedResponse<GuestResponse>> ListAsync(GuestQuery filter, CancellationToken ct)

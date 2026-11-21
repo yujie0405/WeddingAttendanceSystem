@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "../../api/backend";
-import type { ApiGuest, ApiTable, GuestInput, GuestPage, Lookup } from "../../api/backend";
+import type { ApiGuest, ApiTable, AttendanceSummary, GuestInput, GuestPage, Lookup } from "../../api/backend";
 import { AppError } from "../../i18n/messages";
 import type { TranslationKey } from "../../i18n/messages";
 import { useAuth } from "../../hooks/useAuth";
@@ -35,6 +35,8 @@ export function BackendPage({ mode }: { mode: Mode }) {
   const [edit, setEdit] = useState<ApiGuest>();
   const [amounts, setAmounts] = useState<Record<number, number>>({});
   const [total, setTotal] = useState<number | undefined>();
+  const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary>();
+  const [attendanceError, setAttendanceError] = useState<TranslationKey>();
   const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
@@ -70,6 +72,23 @@ export function BackendPage({ mode }: { mode: Mode }) {
       .finally(() => { if (!signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [user, mode, search, side, status, relation, table, page, revision]);
+
+  useEffect(() => {
+    if (!user) return;
+    const controller = new AbortController();
+    const { signal } = controller;
+    setAttendanceSummary(undefined);
+    setAttendanceError(undefined);
+    void backend.attendanceSummary(signal).then(summary => {
+      if (!signal.aborted) setAttendanceSummary(summary);
+    }).catch(error => {
+      if (!signal.aborted) setAttendanceError(
+        failure(error) === "Backend.AttendanceStatusNotConfigured"
+          ? "Backend.AttendanceStatusNotConfigured" : "Backend.AttendanceUnavailable",
+      );
+    });
+    return () => controller.abort();
+  }, [user, mode, revision]);
 
   useEffect(() => {
     const refresh = () => setRevision(value => value + 1);
@@ -110,11 +129,26 @@ export function BackendPage({ mode }: { mode: Mode }) {
         <h3>{t("Backend.NewGuest")}</h3>
         <GuestForm key={formKey} tags={tags} statuses={statuses} tables={tables} disabled={saving || loading} onSave={input => perform(() => backend.saveGuest(input), () => { setFormKey(key => key + 1); setPage(1); })} />
       </section>}
-      {mode === "gifts" && <section className="admin-section">
-        <h3>{t("Backend.SummaryTotal")}</h3>
-        <strong>{loading || error || total === undefined ? "—" : formatRM(total, i18n.resolvedLanguage)}</strong>
-        <p>{t("Backend.TotalHelp")}</p>
-      </section>}
+      <div className={mode === "gifts" ? "admin-summary-grid" : undefined}>
+        <section className="attendance-stat">
+          <h2>{t("Backend.AttendedGuests")}</h2>
+          <div aria-live="polite">
+            {attendanceSummary ? <>
+              <strong>{(attendanceSummary.totalPeople ? attendanceSummary.arrivedPeople / attendanceSummary.totalPeople : 0)
+                .toLocaleString(i18n.resolvedLanguage, { style: "percent", maximumFractionDigits: 1 })}</strong>
+              <p>{t("Main.ArrivalSummary", {
+                arrived: attendanceSummary.arrivedPeople,
+                count: attendanceSummary.totalPeople,
+              })}</p>
+            </> : <p>{t(attendanceError ?? "Backend.Loading")}</p>}
+          </div>
+        </section>
+        {mode === "gifts" && <section className="gift-stat">
+          <h2>{t("Backend.SummaryTotal")}</h2>
+          <strong>{loading || error || total === undefined ? "—" : formatRM(total, i18n.resolvedLanguage)}</strong>
+          <p>{t("Backend.TotalHelp")}</p>
+        </section>}
+      </div>
       <section className="admin-section wedding-space-y-3">
         <label className="admin-label">{t("Backend.Search")}<input type="search" className="admin-input" value={search} onChange={event => changeFilter(setSearch, event.target.value)} /></label>
         <div className="form-grid">
@@ -137,7 +171,7 @@ export function BackendPage({ mode }: { mode: Mode }) {
         {!loading && !error && rows.items.map(guest => <article key={guest.id} data-guest-id={guest.id} className="guest-card">
           <div className="admin-section-heading"><div>
             <h3 className="wedding-text-base wedding-font-bold">{guest.guestName}</h3>
-            <p>{guest.relationship} · {guest.weddingSide === 1 ? t("Common.Groom") : t("Common.Bride")}</p>
+            <p>{guest.relationship && <>{guest.relationship} · </>}{guest.weddingSide === 1 ? t("Common.Groom") : t("Common.Bride")}</p>
             <p>{guest.tableNumber === null ? t("Backend.Unassigned") : t("Common.TableNumber", { table: guest.tableNumber })} · {t("Backend.GuestNum")}: {guest.guestNum}</p>
           </div>
             {mode !== "checkin" && user?.role === "admin" && <div className="admin-row-actions">
@@ -183,7 +217,7 @@ function GuestForm({ initial, tags, statuses, tables, disabled, onSave }: {
 }) {
   const { t } = useTranslation();
   const [name, setName] = useState(initial?.guestName || "");
-  const [relation, setRelation] = useState(initial ? String(initial.relationId) : "");
+  const [relation, setRelation] = useState(initial?.relationId?.toString() ?? "");
   const [side, setSide] = useState(String(initial?.weddingSide || 1));
   const [count, setCount] = useState(String(initial?.guestNum || 1));
   const [status, setStatus] = useState(initial?.attendanceStatusId ?? 1);

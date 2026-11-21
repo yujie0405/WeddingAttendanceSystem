@@ -3,8 +3,8 @@ import { apiRequest } from "./http";
 export interface ApiGuest {
   id: number;
   guestName: string;
-  relationId: number;
-  relationship: string;
+  relationId: number | null;
+  relationship: string | null;
   weddingSide: number;
   guestNum: number;
   attendanceStatusId: number;
@@ -24,7 +24,9 @@ export interface Lookup { id: number; name: string }
 export interface ApiTable { tableNumber: number; capacity: number; assignedCount: number; guestTagId: number | null }
 export interface GuestPage { items: ApiGuest[]; page: number; pageSize: number; totalCount: number }
 export interface Money { guestId: number; amount: number }
+export interface AttendanceSummary { arrivedPeople: number; totalPeople: number }
 export const backend = {
+  attendanceSummary: (signal?: AbortSignal) => apiRequest<AttendanceSummary>("/summary/attendance", { signal }),
   tables: (signal?: AbortSignal) => apiRequest<ApiTable[]>("/tables", { signal }),
   addTable: (tableNumber: number, capacity: number, guestTagId: number | null) => apiRequest<ApiTable>("/tables", { method: "POST", body: JSON.stringify({ tableNumber, capacity, guestTagId }) }),
   deleteTable: (number: number) => apiRequest<void>(`/tables/${number}`, { method: "DELETE" }),

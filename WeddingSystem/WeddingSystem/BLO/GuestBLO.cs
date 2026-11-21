@@ -63,10 +63,21 @@ public sealed class GuestBLO(GuestDBO guests, LookupDBO lookups, IConfiguration 
     public async Task<AttendanceSummary> SummaryAsync(CancellationToken ct)
     {
         var arrived = config.GetValue<int>("Attendance:ArrivedStatusId");
+        if (arrived <= 0)
+        {
+            var matchingStatuses = (await lookups.StatusesAsync(ct))
+                .Where(status => IsArrivedLabel(status.Name)).ToArray();
+            if (matchingStatuses.Length == 1)
+                return await guests.SummaryAsync(matchingStatuses[0].Id, ct);
+        }
         if (arrived <= 0 || !await lookups.StatusExistsAsync(arrived, ct))
             throw new ApiException(503, "STATUS_NOT_CONFIGURED", "Configure the arrived status ID before requesting attendance totals.");
         return await guests.SummaryAsync(arrived, ct);
     }
+
+    private static bool IsArrivedLabel(string name) => name.Trim().ToLowerInvariant() is
+        "arrived" or "attended" or "checked in" or "checked-in" or "已到" or "已到场" or "已签到";
+
     private async Task ValidateAsync(GuestWriteRequest request, int? guestId, CancellationToken ct)
     {
         if (request.TableNumber is { } number)
