@@ -38,7 +38,8 @@ public sealed class RegistrationController(WeddingDbContext db, IPasswordHasher<
             return Conflict(new { code = "ACCOUNT_EXISTS" });
         var user = new UserEntity
         {
-            Id = Guid.NewGuid(), Email = email, Username = request.Username.Trim(), CreatedDate = DateTimeOffset.UtcNow
+            Id = Guid.NewGuid(), Email = email, Username = request.Username.Trim(), CreatedDate = DateTimeOffset.UtcNow,
+            Type = UserEntity.GuestType
         };
         user.Password = passwords.HashPassword(user, request.Password);
         db.Users.Add(user);

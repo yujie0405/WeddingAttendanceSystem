@@ -65,7 +65,8 @@
     "Tables": "Table Settings",
     "AdminNavigation": "Admin navigation",
     "AdminRole": "Administrator",
-    "StaffRole": "Staff"
+    "StaffRole": "Staff",
+    "GuestRole": "Guest"
   },
   "Main": {
     "ArrivedPeople": "Attendance progress (Arrived / Total)",

@@ -64,7 +64,8 @@
         "Tables": "桌位设置",
         "AdminNavigation": "后台导航",
         "AdminRole": "管理员",
-        "StaffRole": "接待员"
+        "StaffRole": "接待员",
+        "GuestRole": "宾客"
     },
     "Main": {
         "ArrivedPeople": "全场出席进度 (Arrived / Total)",

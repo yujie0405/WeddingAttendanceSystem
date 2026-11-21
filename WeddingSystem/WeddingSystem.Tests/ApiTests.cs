@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,30 @@ using Xunit;
 
 namespace WeddingSystem.Tests;
 
-// Every test uses a deliberately unreachable database address. No production config or writes.
+// Tests use an isolated SQLite database and test-only signing keys.
 public sealed class ApiFactory : WebApplicationFactory<Program>
 {
     internal const string Issuer = "https://tests.invalid";
     internal const string Key = "test-only-signing-key-at-least-thirty-two-bytes-long";
+    internal const string AdminId = "3bad1711-07ab-45fa-96f4-cd9db21fd2e8";
+    private readonly SqliteConnection connection = new("Data Source=:memory:");
+
+    public ApiFactory()
+    {
+        connection.Open();
+        using var db = CreateContext();
+        db.Database.ExecuteSqlRaw("CREATE TABLE User (AccountId TEXT PRIMARY KEY, Email TEXT NOT NULL, UserName TEXT NOT NULL, type INTEGER NULL)");
+        db.Database.ExecuteSqlInterpolated($"INSERT INTO User (AccountId, Email, UserName, type) VALUES ({Guid.Parse(AdminId)}, 'admin@example.com', 'Admin', 1)");
+    }
+
+    private WeddingDbContext CreateContext() => new(new DbContextOptionsBuilder<WeddingDbContext>().UseSqlite(connection).Options);
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (disposing) connection.Dispose();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
@@ -36,6 +56,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             ["Authentication:AdminEmails"] = "yijietee123@gmail.com",
             ["Cors:AllowedOrigins:0"] = "http://localhost:5173"
         }));
+        builder.ConfigureServices(services => services.AddScoped(_ => CreateContext()));
         builder.ConfigureServices(services => services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
         {
             options.Authority = null;
@@ -65,15 +86,13 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
     [Theory]
-    [InlineData("yijietee123@gmail.com", "admin")]
-    [InlineData("YIJIETEE123@gmail.com", "admin")]
-    [InlineData("other@gmail.com", "staff")]
-    [InlineData("yijietee123@gmail.com.attacker.test", "staff")]
-    public async Task AdminEmailRequiresExactServerConfiguredMatch(string email, string expectedRole)
+    [InlineData("yijietee123@gmail.com")]
+    [InlineData("other@gmail.com")]
+    public async Task LegacyAdminConfigurationDoesNotGrantAdminAccess(string email)
     {
-        using var client = factory.Authenticated("email-test-user", email);
+        using var client = factory.Authenticated("test-admin", email);
         using var document = JsonDocument.Parse(await client.GetStringAsync("/api/auth/me"));
-        Assert.Equal(expectedRole, document.RootElement.GetProperty("role").GetString());
+        Assert.Equal("guest", document.RootElement.GetProperty("role").GetString());
     }
     [Fact]
     public void SupabaseClientIsScopedAndDoesNotConnectOnResolution()
@@ -129,8 +148,8 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     }
 
     [Theory]
-    [InlineData("staff", "staff")]
-    [InlineData("test-admin", "admin")]
+    [InlineData("staff", "guest")]
+    [InlineData(ApiFactory.AdminId, "admin")]
     public async Task CurrentUserUsesServerAuthorizationPolicy(string subject, string expectedRole)
     {
         using var client = factory.Authenticated(subject);
@@ -165,7 +184,7 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [InlineData(10000000000)]
     public async Task InvalidMoneyRejectedBeforeDatabaseAccess(decimal amount)
     {
-        using var client = factory.Authenticated("test-admin");
+        using var client = factory.Authenticated(ApiFactory.AdminId);
         var result = await client.PutAsJsonAsync("/api/admin/guests/1/angpau", new { amount });
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         Assert.Contains("INVALID_AMOUNT", await result.Content.ReadAsStringAsync());
@@ -174,7 +193,7 @@ public sealed class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task MissingAmountCannotSilentlyResetTotal()
     {
-        using var client = factory.Authenticated("test-admin");
+        using var client = factory.Authenticated(ApiFactory.AdminId);
         Assert.Equal(HttpStatusCode.BadRequest,
             (await client.PutAsJsonAsync("/api/admin/guests/1/angpau", new { })).StatusCode);
     }

@@ -22,7 +22,7 @@ public sealed class DatabaseLoginApiTests
         using var client = factory.CreateClient();
         var register = await client.PostAsJsonAsync("/api/auth/register", new
         {
-            email = "new@example.com", username = "New User", password = "password123", confirmPassword = "password123"
+            email = "new@example.com", username = "New User", password = "password123", confirmPassword = "password123", type = 1
         });
         Assert.Equal(HttpStatusCode.Created, register.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.PostAsJsonAsync("/api/auth/login", new { email = "new@example.com", password = "wrong" })).StatusCode);
@@ -35,9 +35,24 @@ public sealed class DatabaseLoginApiTests
         var body = await profile.Content.ReadAsStringAsync();
         using var user = JsonDocument.Parse(body);
         Assert.Equal("New User", user.RootElement.GetProperty("name").GetString());
-        Assert.Equal("staff", user.RootElement.GetProperty("role").GetString());
+        Assert.Equal("guest", user.RootElement.GetProperty("role").GetString());
         Assert.DoesNotContain("password", body, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/admin/summary/angpau")).StatusCode);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<WeddingDbContext>();
+        var account = await db.Users.SingleAsync();
+        Assert.Equal(2, account.Type);
+        account.Type = 1;
+        await db.SaveChangesAsync();
+
+        using var adminProfile = JsonDocument.Parse(await client.GetStringAsync("/api/auth/me"));
+        Assert.Equal("admin", adminProfile.RootElement.GetProperty("role").GetString());
+        var invalidAmount = new { amount = -1 };
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PutAsJsonAsync("/api/admin/guests/1/angpau", invalidAmount)).StatusCode);
+
+        account.Type = 2;
+        await db.SaveChangesAsync();
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.PutAsJsonAsync("/api/admin/guests/1/angpau", invalidAmount)).StatusCode);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "forged");
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/me")).StatusCode);
     }
@@ -49,7 +64,7 @@ public sealed class DatabaseLoginApiTests
         {
             connection.Open();
             using var command = connection.CreateCommand();
-            command.CommandText = "CREATE TABLE User (AccountId TEXT PRIMARY KEY, AuthUserId TEXT NULL, Email TEXT NOT NULL UNIQUE COLLATE NOCASE, UserName TEXT NOT NULL, Password TEXT NULL, createdDate TEXT NOT NULL)";
+            command.CommandText = "CREATE TABLE User (AccountId TEXT PRIMARY KEY, AuthUserId TEXT NULL, Email TEXT NOT NULL UNIQUE COLLATE NOCASE, UserName TEXT NOT NULL, Password TEXT NULL, createdDate TEXT NOT NULL, type INTEGER NULL)";
             command.ExecuteNonQuery();
         }
         protected override void ConfigureWebHost(IWebHostBuilder builder)

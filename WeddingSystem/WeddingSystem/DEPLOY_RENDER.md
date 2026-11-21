@@ -23,7 +23,6 @@ The Dockerfile binds Kestrel to all interfaces on HTTP port 8080 and starts `dot
 | `Supabase__Url` | `https://PROJECT_REF.supabase.co` |
 | `Supabase__Key` | `SUPABASE_PUBLISHABLE_KEY` for legacy Supabase Auth login |
 | `Authentication__SigningKey` | A random secret of at least 64 UTF-8 bytes, kept stable across restarts and instances |
-| `Authentication__AdminEmails` | `admin@example.com,another-admin@example.com` using the database accounts that should have admin access |
 | `Cors__AllowedOrigins__0` | `https://YOUR_FRONTEND.vercel.app` using the exact production origin, with no path or trailing slash |
 
 In Supabase, open **Connect → Session pooler** and copy the host, database name, and username into the Npgsql format below. Use the database password for that database role and quote the password if it contains a semicolon. [Supabase connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres)

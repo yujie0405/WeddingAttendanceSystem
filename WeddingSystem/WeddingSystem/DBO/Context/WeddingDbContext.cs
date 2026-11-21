@@ -29,6 +29,7 @@ public sealed class WeddingDbContext(DbContextOptions<WeddingDbContext> options)
         user.Property(x => x.Password).HasColumnType("text");
         user.Property(x => x.Email).HasMaxLength(254).IsRequired();
         user.Property(x => x.Username).HasColumnName("UserName").HasMaxLength(100).IsRequired();
+        user.Property(x => x.Type).HasColumnName("type");
         user.Property(x => x.CreatedDate).HasColumnName("createdDate").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
         var status = b.Entity<AttendanceStatusEntity>();
         status.ToTable("AttendanceStatus", "public");

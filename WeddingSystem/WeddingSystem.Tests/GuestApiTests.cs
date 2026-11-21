@@ -90,12 +90,14 @@ public sealed class GuestApiTests
     private sealed class GuestFactory : WebApplicationFactory<Program>
     {
         private readonly SqliteConnection connection = new("Data Source=:memory:");
+        private readonly Guid adminId = Guid.NewGuid();
         public GuestFactory()
         {
             connection.Open();
             connection.CreateFunction("now", () => DateTime.UtcNow.ToString("O"));
             using var db = Context();
             db.Database.EnsureCreated();
+            db.Users.Add(new() { Id = adminId, Email = "admin@example.com", Username = "Admin", Type = 1 });
             db.AttendanceStatuses.AddRange(new() { Id = 1, Status = "Not arrived", CreatedDate = DateTime.UtcNow }, new() { Id = 2, Status = "Arrived", CreatedDate = DateTime.UtcNow });
             db.GuestTags.AddRange(new() { Id = 7, TagName = "Family", CreatedDate = DateTime.UtcNow }, new() { Id = 8, TagName = "Friends", CreatedDate = DateTime.UtcNow });
             db.SeatingTables.Add(new() { TableNumber = 17, Capacity = 10 });
@@ -104,7 +106,7 @@ public sealed class GuestApiTests
         private WeddingDbContext Context() => new(new DbContextOptionsBuilder<WeddingDbContext>().UseSqlite(connection).Options);
         public HttpClient Admin()
         {
-            var token = new JwtSecurityToken(LoginTokens.Issuer, LoginTokens.Audience, [new Claim("sub", "guest-admin")], expires: DateTime.UtcNow.AddMinutes(5),
+            var token = new JwtSecurityToken(LoginTokens.Issuer, LoginTokens.Audience, [new Claim("sub", adminId.ToString())], expires: DateTime.UtcNow.AddMinutes(5),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(RegistrationTests.Key)), SecurityAlgorithms.HmacSha256));
             var client = CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(token));
@@ -115,7 +117,7 @@ public sealed class GuestApiTests
             builder.UseEnvironment("Development");
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Authentication:SigningKey"] = RegistrationTests.Key, ["Authentication:AdminUserIds"] = "guest-admin",
+                ["Authentication:SigningKey"] = RegistrationTests.Key,
                 ["Supabase:Url"] = "https://tests.invalid", ["Supabase:Key"] = "test-key"
             }));
             builder.ConfigureServices(services => services.AddScoped(_ => Context()));

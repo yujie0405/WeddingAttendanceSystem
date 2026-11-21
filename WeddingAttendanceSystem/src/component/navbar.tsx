@@ -33,7 +33,7 @@ export function Navbar() {
             </h1>
             <p className="wedding-text-xs wedding-text-hex-78716C wedding-mt-0-5">
               🟢 {user?.name} (
-              {user?.role === "admin" ? t("Nav.AdminRole") : t("Nav.StaffRole")}
+              {t(user?.role === "admin" ? "Nav.AdminRole" : user?.role === "guest" ? "Nav.GuestRole" : "Nav.StaffRole")}
               )
             </p>
           </div>

@@ -38,6 +38,7 @@ public sealed class RegistrationTests
         Assert.Equal(201, Assert.IsType<ObjectResult>(await fixture.Controller.Register(Request(), default)).StatusCode);
         var user = await fixture.Db.Users.SingleAsync();
         Assert.Equal("user@example.com", user.Email);
+        Assert.Equal(2, user.Type);
         Assert.NotEqual("password123", user.Password);
         Assert.NotEqual(PasswordVerificationResult.Failed, fixture.Hasher.VerifyHashedPassword(user, user.Password!, "password123"));
         Assert.IsType<UnauthorizedObjectResult>(await fixture.Controller.Login(new() { Email = user.Email, Password = "wrong" }, default));
@@ -114,7 +115,7 @@ public sealed class RegistrationTests
         {
             connection.Open();
             Db = new(new DbContextOptionsBuilder<WeddingDbContext>().UseSqlite(connection).Options);
-            Db.Database.ExecuteSqlRaw("CREATE TABLE User (AccountId TEXT PRIMARY KEY, AuthUserId TEXT NULL, Email TEXT NOT NULL UNIQUE COLLATE NOCASE, UserName TEXT NOT NULL, Password TEXT NULL, createdDate TEXT NOT NULL)");
+            Db.Database.ExecuteSqlRaw("CREATE TABLE User (AccountId TEXT PRIMARY KEY, AuthUserId TEXT NULL, Email TEXT NOT NULL UNIQUE COLLATE NOCASE, UserName TEXT NOT NULL, Password TEXT NULL, createdDate TEXT NOT NULL, type INTEGER NULL)");
             var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Authentication:SigningKey"] = Key }).Build();
             Controller = new(Db, Hasher, new LoginTokens(config), Legacy);
         }

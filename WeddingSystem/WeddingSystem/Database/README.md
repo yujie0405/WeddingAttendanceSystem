@@ -14,11 +14,11 @@ The frontend keeps its access token in tab session storage, sends it with API re
 
 Existing accounts with a null password and a linked `AuthUserId` are migrated on their first successful login: the backend verifies their password through Supabase Auth, checks the returned user ID matches the linked account, then stores a new hash in `User.Password`. Invalid login attempts cannot set that hash. Once a hash exists, all password checks use the User table. The original password cannot be recovered or backfilled without a successful sign-in. Legacy plaintext values are rejected.
 
-Existing `UserID`, `Email`, `UserName`, and `createdDate` columns are retained. `AccountId` provides an independent UUID for signed API identity and preserves existing Supabase UUIDs for administrator assignments. `AuthUserId` is retained only for legacy migration. Roles still come from `Authentication:AdminUserIds`; usernames never grant admin access.
+Existing `UserID`, `Email`, `UserName`, and `createdDate` columns are retained. `AccountId` provides a UUID for signed API identity. `AuthUserId` is retained for legacy migration. The API expects a lowercase integer column `type` on `public."User"`. Set it to `1` for each administrator. The registration API writes `2` for new guest accounts.
 
 `Supabase:Url` and `Supabase:Key` configure the SDK used for legacy password migration. New database accounts do not appear in Supabase Auth, but do appear in the public User table. The publishable key cannot replace the PostgreSQL connection string. Changing a password directly in Supabase Auth will not update an already migrated database password.
 
-Checks: the .NET suite covers hashing, wrong passwords, duplicate accounts, legacy migration, JWT validation, API registration/login/profile retrieval, and staff/admin separation using an isolated SQLite database. Deployment configuration and production password recovery require separate setup; no password reset flow is implemented here.
+Checks: the .NET suite covers hashing, wrong passwords, duplicate accounts, legacy migration, JWT validation, API registration/login/profile retrieval, and guest/admin access using an isolated SQLite database. Deployment configuration and production password recovery require separate setup; no password reset flow is implemented here.
 
 Seating tables
 --------------

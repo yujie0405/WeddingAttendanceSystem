@@ -1,4 +1,4 @@
-export type Role = "staff" | "admin";
+export type Role = "staff" | "guest" | "admin";
 export type WeddingSide = "groom" | "bride";
 export type AttendanceStatus = "pending" | "arrived";
 export type AngpaoType = "individual" | "family";

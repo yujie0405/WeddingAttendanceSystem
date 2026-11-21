@@ -95,18 +95,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 builder.Services.AddAuthorization(options =>
-    options.AddPolicy("Admin", policy => policy.RequireAuthenticatedUser().RequireAssertion(context =>
+    options.AddPolicy("Admin", policy => policy.RequireAuthenticatedUser().RequireAssertion(async context =>
     {
-        if (context.Resource is not HttpContext http || context.User.FindFirst("sub") is not { } subject)
+        if (context.Resource is not HttpContext http || !Guid.TryParse(context.User.FindFirst("sub")?.Value, out var id))
             return false;
-        var configured = http.RequestServices.GetRequiredService<IConfiguration>()["Authentication:AdminUserIds"] ?? "";
-        if (configured.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Contains(subject.Value, StringComparer.Ordinal)) return true;
-        // Email is issued by this backend from the database after password verification.
-        var email = context.User.FindFirst("email")?.Value;
-        var adminEmails = http.RequestServices.GetRequiredService<IConfiguration>()["Authentication:AdminEmails"] ?? "";
-        return email is not null && adminEmails.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Contains(email, StringComparer.OrdinalIgnoreCase);
+        var db = http.RequestServices.GetRequiredService<WeddingDbContext>();
+        return await db.Users.AnyAsync(user => user.Id == id && user.Type == UserEntity.AdminType, http.RequestAborted);
     })));
 
 var app = builder.Build();

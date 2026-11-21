@@ -14,7 +14,8 @@ public sealed class AuthController(IAuthorizationService authorization) : Contro
     {
         var subject = User.FindFirst("sub")?.Value;
         var profile = Guid.TryParse(subject, out var id)
-            ? await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
+            ? await db.Users.Where(x => x.Id == id).Select(x => new { x.Email, x.Username })
+                .SingleOrDefaultAsync(cancellationToken)
             : null;
         var admin = await authorization.AuthorizeAsync(User, HttpContext, "Admin");
         return Ok(new
@@ -22,7 +23,7 @@ public sealed class AuthController(IAuthorizationService authorization) : Contro
             id = User.FindFirst("sub")?.Value,
             email = profile?.Email ?? User.FindFirst("email")?.Value,
             name = profile?.Username ?? User.FindFirst("email")?.Value ?? subject ?? "",
-            role = admin.Succeeded ? "admin" : "staff"
+            role = admin.Succeeded ? "admin" : "guest"
         });
     }
 }
